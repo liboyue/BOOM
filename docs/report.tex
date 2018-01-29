@@ -33,24 +33,28 @@ create complex pipelines and tune parameters automatically.
     The framework should be easy to configure and deploy.
 
     \subsection{Save and resume}
-    The framework should be able to save intermediate results to resume training.
+    The framework should be save intermediate results so that it can be interrupted resume running at a later time.
 
     \subsection{Pipeline topology}
     The framework should be able to create pipelines with complex topologies.
 
-    \subsection{Automatically parameters tuning}
-    The framework should be able to automatically tune some parameters.
+    \subsection{Automatical parameter tuning}
+    The framework should be able to automatically tune some parameters that have been exposed to the system by the pipeline developers.
 
     \subsection{Distributed parallel processing}
-    The framework should support distributed parallel processing to handle large datasets and complicated pipelines.
+    The framework should support distributed parallel processing to handle large datasets and complicated pipelines (e.g. forked pipelines).
 
 \section{Design}
-    A pipeline is constructed by several independent modules,
-    users only need to specify the correspondance between inputs and outputs,
-    the framework would automatically handle all calculation.
+    A pipeline is constructed from several independent modules.
+    Users only need to specify
+    \begin{enumerate}
+        \item The correspondence between inputs and outputs
+        \item The connections between modules
+    \end{enumerate}
+    The framework will automatically handle all execution.
 
     \subsection{Module}
-    A module is the basic calculation unit which takes arbitrary number of inputs and produces arbitrary number of outputs.
+    A module is the basic calculation unit which takes an arbitrary number of inputs and produces an arbitrary number of outputs.
     Every input and output is an information object defined below.
     A module also needs a description file to specify following fileds:
     \begin{itemize}
@@ -65,7 +69,7 @@ create complex pipelines and tune parameters automatically.
     \end{itemize}
 
     \subsection{Information object}
-    The information obejct used to pass data between modules contains following fileds:
+    The information object used to pass data between modules contains the following fileds:
 
     \begin{itemize}
         \item Producing module: the module that produced this information object.
@@ -76,7 +80,7 @@ create complex pipelines and tune parameters automatically.
     \end{itemize}
 
     \subsection{File format}
-    A data file has a description file which contains following fileds:
+    A data file has a description file which contains the following fileds:
 
     \begin{itemize}
         \item The configuration applied to it.
@@ -86,7 +90,7 @@ create complex pipelines and tune parameters automatically.
     \end{itemize}
 
     \subsection{Configuration file}
-    We use YAML files to configure the framework.
+    We will use YAML files to configure the framework.
 
     \subsection{Code structure}
 
