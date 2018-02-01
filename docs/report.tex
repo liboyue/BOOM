@@ -1,17 +1,10 @@
 \documentclass{article}
 \usepackage{hyperref}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{color}
 \usepackage{tabularx}
 \usepackage{graphicx}
 \usepackage{enumerate}
 \usepackage{listings} 
 \usepackage{float}
-
- 
-\DeclareMathOperator{\E}{\mathbb{E}}
-\DeclareMathOperator{\Prob}{\mathbb{P}}
 
 \begin{document}
 
@@ -58,6 +51,8 @@ create complex pipelines and tune parameters automatically.
     Every input and output is an information object defined below.
     A module also needs a description file to specify following fileds:
     \begin{itemize}
+        \item Unique ID of the module.
+        \item Name of the module.
         \item Number of inputs.
         \item Number of outputs.
         \item Data type of inputs.
@@ -67,6 +62,16 @@ create complex pipelines and tune parameters automatically.
         \item Tuning interval of parameters.
         \item Tuning steps of parameters.
     \end{itemize}
+
+    Figure \ref{fig:module_uml} is the UML diagram for the abstract
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=0.3\textwidth]{fig/module_uml.png}
+        \end{center}
+        \label{fig:module_uml}
+        \caption{UML diagram for abstract module class}
+    \end{figure}
+
 
     \subsection{Information object}
     The information object used to pass data between modules contains the following fileds:
@@ -89,11 +94,37 @@ create complex pipelines and tune parameters automatically.
         \item Data size.
     \end{itemize}
 
+    Figure \ref{fig:infomation_obj_uml} is the UML diagram for the information object.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=0.3\textwidth]{fig/infomation_obj_uml.png}
+        \end{center}
+        \label{fig:infomation_obj_uml}
+        \caption{UML diagram for information object}
+    \end{figure}
+
     \subsection{Configuration file}
-    We will use YAML files to configure the framework.
+    We use YAML files to configure the framework.
 
-    \subsection{Code structure}
+    \subsection{Pipeline construction}
+    We assign an unique ID to each module.
+    Then we use these IDs to specify the connection of the pipeline.
+    Therefore, we can easily design very complex pipelines.
+    We use information object to pass data between modules.
 
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=1.2\textwidth]{fig/sample_pipeline.png}
+        \end{center}
+        \label{fig:sample_pipeline}
+        \caption{A sample pipeline}
+    \end{figure}
+    Figure \ref{fig:sample_pipeline} shows a sample pipeline which passes the input information object
+    through some modules and produces the output information object.
+
+
+\section{Implementation}
 
 \section{Experiments}
     \subsection{Dataset1}
@@ -101,7 +132,6 @@ create complex pipelines and tune parameters automatically.
     \subsection{Dataset3}
 
 \section{Conclusion}
-
 
 \section*{Acknowledgements}
 
