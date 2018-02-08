@@ -1,0 +1,21 @@
+{
+    "name": "test_pipeline",
+    "modules": {
+        "1": {
+            "type": "abstract_module",
+            "input_files": "example/data.txt",
+            "input_types": "str",
+            "params": {
+            },
+            "outputs": "2",
+            "output_types": "str"
+        },
+        "2": {
+            "type": "abstract_module",
+            "params": {
+            },
+            "output_files": "test.txt",
+            "output_types": "str"
+        }
+    }
+}
