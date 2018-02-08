@@ -6,6 +6,6 @@ import src
 configure_path = './configure1.json'
 plot_path = './plot.png'
 
-a = src.pipeline(configure_path)
-
-a.plot(plot_path)
+p = src.pipeline(configure_path)
+print(p)
+p.draw(plot_path)
