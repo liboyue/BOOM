@@ -1,0 +1,31 @@
+name: test_pipeline
+
+modules:
+    -   name: module 1
+        type: Module
+        input_files:
+            - example/data.txt
+        params:
+            - margin:
+                start: 0
+                end: 100
+                step size: 10
+        output_modules: 
+            - module 2
+
+    -   name: module 2
+        type: Module
+        input_modules:
+            - module 1
+        output_modules: 
+            - module 3
+        params:
+        
+    -   name: module 3
+        type: Module
+        input_modules:
+            - module 3
+        output_files:
+            - test.txt
+        params:
+        

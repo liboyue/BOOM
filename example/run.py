@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # coding=utf-8
 import src
+import glog as log
 
 
-configure_path = './configure1.json'
-plot_path = './plot.png'
+configure_path = './conf.yaml'
 
-p = src.pipeline(configure_path)
-print(p)
-p.draw(plot_path)
+p = src.Pipeline(configure_path)
+log.warn('Pipeline sturcture:\n' + str(p))
+
+
+# plot_path = './plot.png'
+# p.plot(plot_path)
