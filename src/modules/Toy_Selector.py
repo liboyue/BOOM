@@ -1,7 +1,7 @@
 import sys, json
-from abstract_module import Abstract_module
+from . import Module
 
-class Toy_Selector(Abstract_module):
+class Toy_Selector(Module):
 
     def __init__(self, name, string_list, number):
         Abstract_module.__init__(self, name)

@@ -1,10 +1,10 @@
 import sys, json
-from abstract_module import Abstract_module
+from module import Module
 
-class Toy_Jaccard(Abstract_module):
+class Toy_Jaccard(Module):
 
     def __init__(self, name, primary_string, string_list):
-        Abstract_module.__init__(self, name)
+        super().__init__(self, name)
         self.primary = primary_string
         self.string_list = string_list
 

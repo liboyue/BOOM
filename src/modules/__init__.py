@@ -1,3 +1,3 @@
-all = ['abstract_module']
+all = ['Module']
 # from . import abstract_module
-from .abstract_module import abstract_module
+from .module import Module
