@@ -1,6 +1,5 @@
-
 class Parameter:
-    def __init__(self, name, ):
+    def __init__(self, conf):
         pass
 
     def get_value(self):
