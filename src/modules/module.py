@@ -3,81 +3,91 @@ import json
 
 class Module():
     """The base module class. Every actual module should be derived from this class."""
+
+    ## Metaclass
     __metaclass__ = abc.ABCMeta
 
+
     def __init__(self, conf):
-        self._conf = conf
-        self._name = conf['name']
-        self._params = conf['params']
+        """Initialization."""
+
+        ## Original configuration file.
+        self.conf = conf
+
+        ## The module's name.
+        self.name = conf['name']
+
+        ## The module's parameters.
+        self.params = conf['params']
 
         if 'output_files' in conf:
-            self._output_files = conf['output_files']
+            self.output_files = conf['output_files']
 
         if 'input_files' in conf:
-            self._input_files = conf['input_files']
+            self.input_files = conf['input_files']
 
-        self._output_modules = []
-        self._input_modules = []
+        self.output_modules = []
+        self.input_modules = []
 
     def __str__(self):
-        return 'Module name: ' + self._name + '\n' \
-                + 'Module params: ' + json.dumps(self._params) + '\n' \
-                + 'Output modules: ' + '    \n'.join([str(child) for child in self._output_modules])
+        return 'Module name: ' + self.name + '\n' \
+                + 'Module params: ' + json.dumps(self.params) + '\n' \
+                + 'Output modules: ' + '    \n'.join([str(child) for child in self.output_modules])
 
     def get_output_modules(self):
-        return self._output_modules
+        return self.output_modules
 
     def add_output_module(self, module):
-        for tmp in self._output_modules:
+        for tmp in self.output_modules:
             if tmp.get_name() == module.get_name():
                 return
-        self._output_modules.append(module)
+        self.output_modules.append(module)
 
     def add_input_module(self, module):
-        for tmp in self._input_modules:
+        for tmp in self.input_modules:
             if tmp.get_name() == module.get_name():
                 return
-        self._input_modules.append(module)
+        self.input_modules.append(module)
 
     def get_conf(self):
-        return self._conf
+        return self.conf
 
     def get_name(self):
-        return self._name
+        return self.name
 
     def get_n_inputs(self):
-        return len(self._input_modules)
+        return len(self.input_modules)
 
     def get_n_outputs(self):
-        return len(self._output_modules)
+        return len(self.output_modules)
 
     def get_input_types(self):
-        return self._input_types
+        return self.input_types
 
     def get_output_types(self):
-        return self._output_types
+        return self.output_types
 
     def get_n_params(self):
-        return len(self._params)
+        return len(self.params)
 
     def get_param(self, idx):
-        return self._params[idx]
+        return self.params[idx]
 
     def set_param(self, idx, value):
         try:
-            self._params[idx] = value
+            self.params[idx] = value
             return True
         except:
             return False
 
     def get_id(self):
-        return self._id
+        return self.id
 
     def get_module_name(self):
-        return self._name
+        return self.name
 
     @abc.abstractmethod
-    def run(self):
+    def run(self, result_path):
         """This function needs to be implemented in each class and should run the
         core algorithm for the module and return the module's output."""
         return

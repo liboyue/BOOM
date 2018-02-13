@@ -1,4 +1,6 @@
 class Parameter:
+    """Parameter class."""
+
     def __init__(self, conf):
         pass
 

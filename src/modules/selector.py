@@ -1,7 +1,7 @@
 import sys, json
-from . import Module
+from .module import Module
 
-class Toy_Selector(Module):
+class Selector(Module):
 
     def __init__(self, name, string_list, number):
         Abstract_module.__init__(self, name)
@@ -16,7 +16,7 @@ class Toy_Selector(Module):
 
 if __name__ == '__main__':
     data = json.load(open(sys.argv[1]))
-    m = Toy_Selector("Toy Selector", data["output"], int(sys.argv[2]))
+    m = Selector("Toy Selector", data["output"], int(sys.argv[2]))
     result = {"output" : m.run()}
     outfile = open("toy_selector_out.json", "w")
     json.dump(result, outfile)

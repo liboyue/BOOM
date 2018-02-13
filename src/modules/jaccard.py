@@ -1,7 +1,7 @@
 import sys, json
-from module import Module
+from .module import Module
 
-class Toy_Jaccard(Module):
+class Jaccard(Module):
 
     def __init__(self, name, primary_string, string_list):
         super().__init__(self, name)
@@ -18,7 +18,7 @@ class Toy_Jaccard(Module):
 
 if __name__ == '__main__':
     data = json.load(open(sys.argv[1]))
-    m = Toy_Jaccard("Toy Jaccard", data["base_string"], data["string_list"])
+    m = Jaccard("Toy Jaccard", data["base_string"], data["string_list"])
     result = {"output" : m.run()}
     outfile = open("toy_jaccard_out.json", "w")
     json.dump(result, outfile)

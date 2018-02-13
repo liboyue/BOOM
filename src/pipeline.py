@@ -13,25 +13,25 @@ class Pipeline:
         with open(conf_path) as f:
         # with open('conf.yaml') as f:
             # a = yaml.load(f)
-            self._conf = yaml.load(f)
+            self.conf = yaml.load(f)
 
         log.info('Loading configuration file from ' + conf_path)
-        log.info(json.dumps(self._conf, indent=4))
+        log.info(json.dumps(self.conf, indent=4))
 
 
-        self._name = self._conf['name']
-        self._n_modules = len(self._conf['modules'])
+        self.name = self.conf['name']
+        self.n_modules = len(self.conf['modules'])
 
-        self._modules = [eval(mod_conf['type'])(mod_conf) for mod_conf in self._conf['modules']]
-        log.info('Module list: \n' + '\n\n'.join([str(x) for x in self._modules]))
+        self.modules = [eval(mod_conf['type'])(mod_conf) for mod_conf in self.conf['modules']]
+        log.info('Module list: \n' + '\n\n'.join([str(x) for x in self.modules]))
 
         self._create_pipeline()
 
     def __str__(self, module=None, indent=0):
         if module == None:
-            return 'Pipeline name: ' + self._name + '\n' \
+            return 'Pipeline name: ' + self.name + '\n' \
                     + '  Modules:\n' \
-                    + self.__str__(self._pipeline, 1)
+                    + self.__str__(self.pipeline, 1)
         else:
             ans = '    | ' * (indent) + module.get_name() + '\n'
             if module.get_n_outputs() > 0:
@@ -41,15 +41,15 @@ class Pipeline:
 
     def _create_pipeline(self, module=None):
         if module == None:
-            self._pipeline = self._modules[0]
-            self._create_pipeline(self._pipeline)
+            self.pipeline = self.modules[0]
+            self._create_pipeline(self.pipeline)
 
-        elif hasattr(module, '_output_files'):
+        elif hasattr(module, 'output_files'):
             log.warn('Output module encountered')
             return module
 
         else:
-            for tmp in self._modules:
+            for tmp in self.modules:
                 if not tmp in module.get_output_modules() and tmp.get_name() in module.get_conf()['output_modules']:
                     log.warn(tmp)
                     module.add_output_module(tmp)
@@ -57,11 +57,11 @@ class Pipeline:
                     self._create_pipeline(tmp)
 
     def _check_pipeline(self, ind=0, parents=[]):
-        if len(self._modules) == 0:
+        if len(self.modules) == 0:
             return False
 
-        self._modules[ind]
-        children = self._modules[ind]
+        self.modules[ind]
+        children = self.modules[ind]
 
         if name not in modules:
             return False
@@ -91,7 +91,7 @@ class Pipeline:
 
 
     def run(self):
-        self._pipeline.run()
+        self.pipeline.run()
 
     def draw(self, path):
         pass

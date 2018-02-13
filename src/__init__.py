@@ -1,6 +1,9 @@
-all = ['core', 'modules', 'utils', 'tests', 'Pipeline']
+"""
+Core code of the pipeline framework.
+"""
 
-# from . import core
+__all__ = ['modules', 'utils', 'Pipeline']
+
 # from . import modules
 # from . import utils
 # from . import tests
