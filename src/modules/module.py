@@ -96,14 +96,20 @@ class Module():
     def read_from(self, path):
         pass
 
-    def save_to(self, path):
-        pass
+    def save_to(self, data, path):
+        with open(path, 'w') as f:
+            json.dump(data, f)
 
+
+    ## The function to run the algorithm and process data.
+    #  This function needs to be implemented in each class and should run the
+    #  core algorithm for the module and return the path of module's output file.
+    #  @param out_dir Directory to store intermediate files.
+    #  @param data Dataset object to be processed (optional). If not provided, the module will load file from 'input_files'.
+    #  @return The processed Dataset object.
     @abc.abstractmethod
-    def run(self, out_dir):
-        """This function needs to be implemented in each class and should run the
-        core algorithm for the module and return the path of module's output file."""
-        return
+    def run(self, out_dir, data=None):
+        pass
 
 if __name__ == '__main__':
     pass

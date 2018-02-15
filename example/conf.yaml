@@ -4,7 +4,7 @@ modules:
     -   name: module 1
         type: SampleModule 
         input_files:
-            - example/data.txt
+            - data.json
         params:
             -   name: p
                 start: 0

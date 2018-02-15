@@ -8,6 +8,7 @@ configure_path = './conf.yaml'
 
 p = src.Pipeline(configure_path)
 log.warn('Pipeline sturcture:\n' + str(p))
+p.run()
 
 
 # plot_path = './plot.png'

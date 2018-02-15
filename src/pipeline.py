@@ -1,6 +1,8 @@
 import yaml
 import json
 import glog as log
+import os
+import time
 from .modules import *
 
 class Pipeline:
@@ -98,11 +100,21 @@ class Pipeline:
 
         return True
 
-
+    ## The function to run the pipeline
     def run(self):
-        out_dir = ""
-        self.pipeline.run()
-
-    def draw(self, path):
-        pass
+        out_dir = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
+        os.mkdir(out_dir)
+        cursor = self.pipeline
+        data = None
+        while True:
+            log.info(cursor)
+            log.info(data)
+            data = cursor.run(out_dir, data)
+            cursor = cursor.get_output_modules()
+            if cursor == []:
+                break
+            else:
+                cursor = cursor[0]
+        log.info(cursor)
+        log.info(data)
 
