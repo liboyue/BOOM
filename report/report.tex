@@ -46,32 +46,57 @@ create complex pipelines and tune parameters automatically.
     \end{enumerate}
     The framework will automatically handle all execution.
 
+    \subsection{Pipeline}
+    The pipeline class manages modules and parameters.
+    It reads configuration file, creates the pipeline and controls parameters tuning when running.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=0.3\textwidth]{fig/pipeline_uml.png}
+        \end{center}
+        \label{fig:pipeline_uml}
+        \caption{UML diagram for the pipeline class.}
+    \end{figure}
+
     \subsection{Module}
     A module is the basic calculation unit which takes an arbitrary number of inputs and produces an arbitrary number of outputs.
     Every input and output is an information object defined below.
-    A module also needs a description file to specify following fileds:
+    A module needs to save following fileds:
     \begin{itemize}
         \item Unique ID of the module.
         \item Name of the module.
-        \item Number of inputs.
-        \item Number of outputs.
-        \item Data type of inputs.
-        \item Data type of outputs.
-        \item Number of parameters.
-        \item Default values of parameters.
-        \item Tuning interval of parameters.
-        \item Tuning steps of parameters.
+        \item Inputs.
+        \item Outputs.
+        \item Parameters.
     \end{itemize}
 
-    Figure \ref{fig:module_uml} is the UML diagram for the abstract
     \begin{figure}[H]
         \begin{center}
-            \includegraphics[width=0.3\textwidth]{fig/module_uml.png}
+            \includegraphics[width=\textwidth]{fig/module_uml.png}
         \end{center}
         \label{fig:module_uml}
-        \caption{UML diagram for abstract module class}
+        \caption{UML diagram for the abstract module class and derived classes.}
     \end{figure}
 
+    \subsection{Parameter}
+    The parameter class manages one parameter.
+    It should handle all operations related the parameter,
+    including updating the parameter value according to its step size,  set and reset the value.
+    It also needs to save the following fileds:
+    \begin{itemize}
+        \item Name of parameters.
+        \item Default values of parameters.
+        \item Tuning interval of the parameter.
+        \item Step size of the parameter.
+    \end{itemize}
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=0.3\textwidth]{fig/param_uml.png}
+        \end{center}
+        \label{fig:param_uml}
+        \caption{UML diagram for the parameter class.}
+    \end{figure}
 
     \subsection{Information object}
     The information object used to pass data between modules contains the following fileds:
@@ -94,14 +119,13 @@ create complex pipelines and tune parameters automatically.
         \item Data size.
     \end{itemize}
 
-    Figure \ref{fig:infomation_obj_uml} is the UML diagram for the information object.
 
     \begin{figure}[H]
         \begin{center}
-            \includegraphics[width=0.3\textwidth]{fig/infomation_obj_uml.png}
+            \includegraphics[width=0.3\textwidth]{fig/dataset_uml.png}
         \end{center}
-        \label{fig:infomation_obj_uml}
-        \caption{UML diagram for information object}
+        \label{fig:dataset_uml}
+        \caption{UML diagram for the dataset class.}
     \end{figure}
 
     \subsection{Configuration file}
@@ -124,7 +148,7 @@ create complex pipelines and tune parameters automatically.
     through some modules and produces the output information object.
 
 
-\section{Implementation}
+\section{Example pipeline}
 
 \section{Experiments}
     \subsection{Dataset1}

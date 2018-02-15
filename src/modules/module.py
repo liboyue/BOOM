@@ -93,9 +93,15 @@ class Module():
     def get_module_name(self):
         return self.name
 
+    ## Load Dataset object from path.
+    #  @param path The path to load data.
     def read_from(self, path):
-        pass
+        with open(path, 'w') as f:
+            json.dump(data, f)
 
+    ## Save Dataset object to path.
+    #  @param data The Dataset object to be saved.
+    #  @param path The path to save data.
     def save_to(self, data, path):
         with open(path, 'w') as f:
             json.dump(data, f)
