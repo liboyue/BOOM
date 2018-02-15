@@ -17,7 +17,7 @@ class Parameter:
         return 'name: ' + str(self.name) \
                 + ', start: ' + str(self.start) \
                 + ', end: ' + str(self.end) \
-                + ', step size:' + str(self.step_size)
+                + ', step size: ' + str(self.step_size)
 
     ## Return current value.
     def get_value(self):
