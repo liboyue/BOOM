@@ -6,25 +6,31 @@ from .modules import *
 class Pipeline:
     "The pipeline class creates the pipeline, and manages execution."
     
+    ##  @param conf_path The path to the configuration file.
     def __init__(self, conf_path):
 
-        self._conf_path = conf_path
+        ## The path to the configuration file.
+        self.conf_path = conf_path
 
         with open(conf_path) as f:
         # with open('conf.yaml') as f:
             # a = yaml.load(f)
+
+            ## Content of the configuration file.
             self.conf = yaml.load(f)
 
         log.info('Loading configuration file from ' + conf_path)
         log.info(json.dumps(self.conf, indent=4))
 
-
+        ## Name of the pipeline.
         self.name = self.conf['name']
-        self.n_modules = len(self.conf['modules'])
 
+        ## List of all Module objects.
         self.modules = [eval(mod_conf['type'])(mod_conf) for mod_conf in self.conf['modules']]
         log.info('Module list: \n' + '\n\n'.join([str(x) for x in self.modules]))
 
+        ## Head node of the pipeline.
+        self.pipeline = None
         self._create_pipeline()
 
     def __str__(self, module=None, indent=0):
@@ -39,13 +45,16 @@ class Pipeline:
                     ans += self.__str__(child, indent+1)
             return ans
 
+    ## The function recursively creates the pipeline.
+    #  A pipeline is a graph, every node is a module. This function recursively creates the pipeline.
+    #  @param moudle The head node to create a pipeline.
     def _create_pipeline(self, module=None):
         if module == None:
             self.pipeline = self.modules[0]
             self._create_pipeline(self.pipeline)
 
         elif hasattr(module, 'output_files'):
-            log.warn('Output module encountered')
+            log.info('Output module encountered')
             return module
 
         else:
@@ -70,7 +79,7 @@ class Pipeline:
             return True
 
         for next_name in modules[name]['outputs']:
-            if self._check_topology(next_name, modules) == False:
+            if self._check_pipeline(next_name, modules) == False:
                 return False
 
         return True
@@ -91,6 +100,7 @@ class Pipeline:
 
 
     def run(self):
+        out_dir = ""
         self.pipeline.run()
 
     def draw(self, path):
