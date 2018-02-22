@@ -28,29 +28,62 @@ create complex pipelines and tune parameters automatically.
     \subsection{Save and resume}
     The framework should be save intermediate results so that it can be interrupted resume running at a later time.
 
-    \subsection{Pipeline topology}
-    The framework should be able to create pipelines with complex topologies.
-
     \subsection{Automatical parameter tuning}
     The framework should be able to automatically tune some parameters that have been exposed to the system by the pipeline developers.
 
     \subsection{Distributed parallel processing}
-    The framework should support distributed parallel processing to handle large datasets and complicated pipelines (e.g. forked pipelines).
+    The framework should support distributed parallel processing to handle large datasets and complicated pipelines (e.g. pipelines with several components).
+
+    \subsection{Automatical load balancing}
+    The framework should automatically handle load balancing since different modules need different excution time.
 
 \section{Design}
-    A pipeline is constructed from several independent modules.
+
+    \subsection{Overview}
+
+    As shown in Fig. \ref{fig:flow},
+    a pipeline is constructed from several independent modules.
+    A module reads data from data server,
+    processes data according to all possible parameters,
+    then save results for each configuration to the data server.
+
+    The number of instances of each module is managed by the load balancing server.
+
+    \begin{figure}[h]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/flow.png}
+        \end{center}
+        \label{fig:flow}
+        \caption{Execution flowchart.}
+    \end{figure}
+
+    Every module runs on an independent process,
+    and communicates through RabbitMQ using data objects which contains parameters, current excuetion status and the path to input file.
+
     Users only need to specify
     \begin{enumerate}
-        \item The correspondence between inputs and outputs
         \item The connections between modules
+        \item The parameters every module needs
     \end{enumerate}
-    The framework will automatically handle all execution.
+    The framework will automatically handle execution, load balancing and parameter tuning.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=1.2\textwidth]{fig/sample_pipeline.png}
+        \end{center}
+        \label{fig:sample_pipeline}
+        \caption{A sample pipeline}
+    \end{figure}
+    Figure \ref{fig:sample_pipeline} shows a sample pipeline which passes the input information object
+    through some modules and produces the output information object.
+
+
 
     \subsection{Pipeline}
     The pipeline class manages modules and parameters.
-    It reads configuration file, creates the pipeline and controls parameters tuning when running.
+    It reads configuration file, creates the pipeline and controls load balancing when running.
 
-    \begin{figure}[H]
+    \begin{figure}[h]
         \begin{center}
             \includegraphics[width=0.3\textwidth]{fig/pipeline_uml.png}
         \end{center}
@@ -59,15 +92,16 @@ create complex pipelines and tune parameters automatically.
     \end{figure}
 
     \subsection{Module}
-    A module is the basic calculation unit which takes an arbitrary number of inputs and produces an arbitrary number of outputs.
-    Every input and output is an information object defined below.
-    A module needs to save following fileds:
+    A module is the basic computation unit which takes an input and produces an output.
+    Every input and output is an information object defined in sec. \ref{sec:infomation_object}.
+
+    A module needs to maintain the following fileds:
     \begin{itemize}
-        \item Unique ID of the module.
         \item Name of the module.
-        \item Inputs.
-        \item Outputs.
+        \item Input module.
+        \item Output module.
         \item Parameters.
+        \item Configuration of the pipeline.
     \end{itemize}
 
     \begin{figure}[H]
@@ -75,17 +109,20 @@ create complex pipelines and tune parameters automatically.
             \includegraphics[width=\textwidth]{fig/module_uml.png}
         \end{center}
         \label{fig:module_uml}
-        \caption{UML diagram for the abstract module class and derived classes.}
+        \caption{UML diagrams for the abstract module class and derived classes.}
     \end{figure}
 
     \subsection{Parameter}
+    \label{sec:parameter}
     The parameter class manages one parameter.
     It should handle all operations related the parameter,
-    including updating the parameter value according to its step size,  set and reset the value.
-    It also needs to save the following fileds:
+    including updating the parameter value according to its step size,
+    set and reset the value.
+
+    It also needs to save maintain the following fileds:
     \begin{itemize}
-        \item Name of parameters.
-        \item Default values of parameters.
+        \item Name of the parameter.
+        \item Default values of the parameter.
         \item Tuning interval of the parameter.
         \item Step size of the parameter.
     \end{itemize}
@@ -95,30 +132,32 @@ create complex pipelines and tune parameters automatically.
             \includegraphics[width=0.3\textwidth]{fig/param_uml.png}
         \end{center}
         \label{fig:param_uml}
-        \caption{UML diagram for the parameter class.}
+        \caption{UML diagram for parameter class.}
     \end{figure}
 
-    \subsection{Information object}
-    The information object used to pass data between modules contains the following fileds:
-
+    \subsection{Data}
+    \label{sec:infomation_object}
+    The data class is the information object used to pass data between modules.
+    It maintains the following fileds:
     \begin{itemize}
         \item Producing module: the module that produced this information object.
         \item Consuming module: the module that this information object to be passed to.
         \item Data path: the path to actual data file.
-        \item Data type: the type of data (one of number, binary and string or user defined data type).
-        \item Data size: the number of data instances.
+        \item Configuration: the configuration that produced the data object.
     \end{itemize}
 
     \subsection{File format}
-    A data file has a description file which contains the following fileds:
-
+    A data file has a description contains the following fileds:
     \begin{itemize}
-        \item The configuration applied to it.
-        \item The timestamp when it is created.
-        \item Data type.
-        \item Data size.
+        \item Data: the actual data.
+        \item Configuration: the configuration produced the file it.
+        \item Timestamp: the timestamp when it is created.
+        \item Producing module: the module that produced this file.
     \end{itemize}
 
+
+    \subsection{Dataset}
+    Datasets are handled by the dataset class.
 
     \begin{figure}[H]
         \begin{center}
@@ -130,22 +169,6 @@ create complex pipelines and tune parameters automatically.
 
     \subsection{Configuration file}
     We use YAML files to configure the framework.
-
-    \subsection{Pipeline construction}
-    We assign an unique ID to each module.
-    Then we use these IDs to specify the connection of the pipeline.
-    Therefore, we can easily design very complex pipelines.
-    We use information object to pass data between modules.
-
-    \begin{figure}[H]
-        \begin{center}
-            \includegraphics[width=1.2\textwidth]{fig/sample_pipeline.png}
-        \end{center}
-        \label{fig:sample_pipeline}
-        \caption{A sample pipeline}
-    \end{figure}
-    Figure \ref{fig:sample_pipeline} shows a sample pipeline which passes the input information object
-    through some modules and produces the output information object.
 
 
 \section{Example pipeline}
