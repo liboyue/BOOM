@@ -41,7 +41,7 @@ create complex pipelines and tune parameters automatically.
 
     \subsection{Overview}
 
-    As shown in Fig. \ref{fig:flow},
+    As shown in Fig. \ref{fig:control_flow},
     a pipeline is constructed from several independent modules.
     A module reads data from data server,
     processes data according to all possible parameters,
@@ -51,14 +51,27 @@ create complex pipelines and tune parameters automatically.
 
     \begin{figure}[h]
         \begin{center}
-            \includegraphics[width=\textwidth]{fig/flow.png}
+            \includegraphics[width=\textwidth]{fig/control_flow.png}
         \end{center}
-        \label{fig:flow}
-        \caption{Execution flowchart.}
+        \label{fig:control_flow}
+        \caption{Control flowchart.}
     \end{figure}
+
+    \begin{figure}[h]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/information_flow.png}
+        \end{center}
+        \label{fig:information_flow}
+        \caption{Information flowchart.}
+    \end{figure}
+
 
     Every module runs on an independent process,
     and communicates through RabbitMQ using data objects which contains parameters, current excuetion status and the path to input file.
+    Fig. \ref{fig:information_flow} describes the information flow.
+    Load balancing server distributes jobs to different modules' instances.
+    Once the job is finished, the instance send a confirmation to the load balancing server.
+    
 
     Users only need to specify
     \begin{enumerate}
