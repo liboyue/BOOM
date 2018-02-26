@@ -1,26 +1,26 @@
-import sys, json
 import glog as log
+import json
 from .module import Module
 
 class SampleModule(Module):
 
-    def __init__(self, conf):
-        super().__init__(conf)
+    def __init__(self, conf, host):
+        super().__init__(conf, host)
 
-    def run(self, out_dir, data=None):
-        if data == None:
-            if hasattr(self, 'input_files'):
-                log.info('Processing files from ' + str(self.input_files))
-                data = json.load(open(self.input_files[0]))
-        data['string_list'] = [x + ' processed by ' + self.name for x in data['string_list']]
+    def process(self, job):
+        job.producer = self.name
+        job.consumer = self.output_module
+        job.save_uri = job.save_uri + self.name + '_' + json.dumps(job.params) + '_'
 
+        log.info(job.data_uri)
+        data = self.read_from(job.data_uri)
+
+        data['string_list'] = [x + ' processed by ' + self.name + ', params ' + str(job.params) for x in data['string_list']]
         log.info(data)
-        if hasattr(self, 'output_files'):
-            self.save_to(data, out_dir + '/' + self.output_files[0])
-        else:
-            self.save_to(data, out_dir + '/' + self.name + '.json')
 
-        return data
+        job.data_uri = job.save_uri + '.json'
+        self.save_to(data, job.save_uri + '.json')
+        return job
 
 if __name__ == '__main__':
     pass

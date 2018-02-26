@@ -3,13 +3,7 @@
 import src
 import glog as log
 
-
-configure_path = './conf.yaml'
-
-p = src.Pipeline(configure_path)
-log.warn('Pipeline sturcture:\n' + str(p))
+p = src.Pipeline('conf.yaml')
+log.warn('Pipeline:\n' + str(p))
 p.run()
 
-
-# plot_path = './plot.png'
-# p.plot(plot_path)
