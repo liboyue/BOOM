@@ -1,121 +1,115 @@
-import abc
 import json
-from ..parameter import Parameter
+import pika
+import glog as log
+from ..data import Data
 
 class Module():
     """The base module class. Every actual module should be derived from this class."""
 
-    ## Metaclass
-    __metaclass__ = abc.ABCMeta
+    def __init__(self, conf, host):
 
-    def __init__(self, conf):
-        """Initialization."""
-
-        ## Original configuration file.
+        ## The configuration file.
         self.conf = conf
 
         ## The module's name.
         self.name = conf['name']
 
-        ## The module's parameters.
-        self.params = self._init_params(conf['params'])
+        ## The module's input file path. None if not exists.
+        self.input_file = conf['input_file'] if 'input_file' in conf else None
 
-        if 'output_files' in conf:
-            self.output_files = conf['output_files']
+        ## The module's output file path. None if not exists.
+        self.output_file = conf['output_file'] if 'output_file' in conf else None
 
-        if 'input_files' in conf:
-            self.input_files = conf['input_files']
+        ## The module's input module's name. None if not exists.
+        self.input_module = conf['input_module'] if 'input_module' in conf else None
 
-        self.output_modules = []
-        self.input_modules = []
+        ## The module's output module's name. None if not exists.
+        self.output_module = conf['output_module'] if 'output_module' in conf else None
 
-        ## The status of this module. If finished running, this value would be set to True
-        self.finished = False
+        ## The RabbitMQ server name/IP/url.
+        self.host = host
+
+        ## The exchange the pipeline uses.
+        self.exchange = ''
+ 
+        ## The connection the module instance uses.
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.host))
+
+        ## The channel the module instance uses.
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=self.name)
+        self.channel.basic_qos(prefetch_count=1)
+        self.channel.basic_consume(self.receive_job, queue=self.name)
+
 
     def __str__(self):
-        return 'Module name: ' + self.name + '\n' \
-                + 'Module params: ' + '\n'.join([str(x) for x in self.params]) + '\n' \
-                + 'Output modules: ' + '    \n'.join([str(child) for child in self.output_modules])
+        return json.dumps(self.conf)
 
-    def _init_params(self, params):
-        """This function converts a dict of configurations to a dict of Param objects"""
-        return [Parameter(param) for param in params]
 
-    def get_output_modules(self):
-        return self.output_modules
+    ## The function to handle incoming jobs.
+    def receive_job(self, ch, method, properties, body):
 
-    def add_output_module(self, module):
-        for tmp in self.output_modules:
-            if tmp.get_name() == module.get_name():
-                return
-        self.output_modules.append(module)
+        # Parse request body.
+        data = Data.from_json(body.decode('ascii'))
+        log.info(self.name + ' received job: ' + str(data))
 
-    def add_input_module(self, module):
-        for tmp in self.input_modules:
-            if tmp.get_name() == module.get_name():
-                return
-        self.input_modules.append(module)
+        # Process data.
+        data = self.process(data)
+        data.update_timestamp()
 
+        # Update timestampe and processing time.
+
+        # Send back resulting data.
+        ch.basic_publish(
+                exchange = self.exchange,
+                routing_key = properties.reply_to,
+                properties = pika.BasicProperties(),
+                body = data.to_json()
+                )
+
+        ch.basic_ack(delivery_tag = method.delivery_tag)
+        log.info(self.name + ' sent back job: ' + str(data))
+
+
+    ## Get the configuration of the mdoule.
     def get_conf(self):
         return self.conf
 
+
+    ## Get the name of the mdoule.
     def get_name(self):
         return self.name
 
-    def get_n_inputs(self):
-        return len(self.input_modules)
-
-    def get_n_outputs(self):
-        return len(self.output_modules)
-
-    def get_input_types(self):
-        return self.input_types
-
-    def get_output_types(self):
-        return self.output_types
-
-    def get_n_params(self):
-        return len(self.params)
-
-    def get_param(self, idx):
-        return self.params[idx]
-
-    def set_param(self, idx, value):
-        try:
-            self.params[idx] = value
-            return True
-        except:
-            return False
-
-    def get_id(self):
-        return self.id
-
-    def get_module_name(self):
-        return self.name
-
-    ## Load Dataset object from path.
+    ## Load data from path.
     #  @param path The path to load data.
+    #  @return The data to loaded.
     def read_from(self, path):
-        with open(path, 'w') as f:
-            json.dump(data, f)
+        with open(path) as f:
+            return json.load(f)
 
-    ## Save Dataset object to path.
-    #  @param data The Dataset object to be saved.
+
+    ## Save data object to path.
+    #  @param data The data to be saved.
     #  @param path The path to save data.
     def save_to(self, data, path):
         with open(path, 'w') as f:
             json.dump(data, f)
 
 
-    ## The function to run the algorithm and process data.
+    ## The function to run the algorithm and process data objects.
     #  This function needs to be implemented in each class and should run the
-    #  core algorithm for the module and return the path of module's output file.
-    #  @param out_dir Directory to store intermediate files.
-    #  @param data Dataset object to be processed (optional). If not provided, the module will load file from 'input_files'.
-    #  @return The processed Dataset object.
-    @abc.abstractmethod
-    def run(self, out_dir, data=None):
+    #  core algorithm for the module, save intermediate results and return the resulting data object.
+    #  @param data Data object to be processed.
+    #  @return The processed data object.
+    def process(self, data):
         pass
+
+
+    ## The function to start the service.
+    def run(self):
+        log.info('Module ' + self.name + ' started, awaiting for requests.')
+        self.channel.start_consuming()
+
 
 if __name__ == '__main__':
     pass
