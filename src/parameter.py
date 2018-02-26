@@ -37,6 +37,13 @@ class Parameter:
         else:
             return False
 
+    ## The generator for all possible values.
+    #  @return The generator for all possible values.
+    def values(self):
+        yield self.val
+        while self.next_value() == True:
+            yield self.val
+
 
     ## Reset the parameter to the starting value.
     def reset_value(self):
