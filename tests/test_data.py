@@ -3,6 +3,8 @@ import json
 
 json_str = json.dumps({
         'data_uri': 'uri',
+        'save_uri': 'save_uri',
+        'params': None,
         'timestamp': str(None),
         'producer': 'producer',
         'consumer': 'consumer',
@@ -10,7 +12,7 @@ json_str = json.dumps({
         })
 
 def test_init():
-    data = Data('uri')
+    data = Data('uri', 'save_uri')
 
 def test_from_json():
     data = Data.from_json(json_str)
@@ -18,10 +20,12 @@ def test_from_json():
     assert str(data) == json_str
 
 def test_to_json():
-    data = Data('uri')
+    data = Data('uri', 'save_uri')
     data.timestamp = None
     assert str(data) == json.dumps({
             'data_uri': 'uri',
+            'save_uri': 'save_uri',
+            'params': None,
             'timestamp': str(None),
             'producer': None,
             'consumer': None,
