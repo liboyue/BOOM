@@ -5,5 +5,6 @@ import glog as log
 
 p = src.Pipeline('conf.yaml')
 log.warn('Pipeline:\n' + str(p))
+p.plot()
 p.run()
 
