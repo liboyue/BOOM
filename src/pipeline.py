@@ -7,6 +7,7 @@ import pika
 from .data import Data
 from .modules import *
 from .parameter import Parameter
+import pydotplus
 
 class Pipeline:
     "The pipeline class creates the pipeline, and manages execution."
@@ -87,6 +88,52 @@ class Pipeline:
                 return False
 
         return True
+
+    def plot(self):
+        fig = pydotplus.Dot(graph_name=self.conf['name'],rankdir="LR", labelloc='b', labeljust='r', ranksep=1)
+        fig.set_node_defaults(shape='square')
+
+        modules = []
+
+        for module in self.conf['modules']:
+
+            if 'input_file' in module:
+                modules.append(
+                    pydotplus.Node(
+                        name='input_file',
+                        texlbl='Input file\n' + module['input_file'],
+                        label='Input file\n' + module['input_file']
+                        )
+                    )
+
+            label = ''
+            for params in module['params']:
+                label += 'param ' + params['name'] + ' range: [' + str(params['start']) + ', ' + str(params['step_size']) + ', ' + str(params['end']) + ']\n' 
+
+            modules.append(
+                pydotplus.Node(
+                    name=module['name'],
+                    texlbl=module['name'],
+                    label=module['name'] + '\ntype: ' + module['type'] + '\n' + label
+                    )
+                )
+
+            if 'output_file' in module:
+                modules.append(
+                    pydotplus.Node(
+                        name='output_file',
+                        texlbl='Output file' + module['output_file'],
+                        label='Output file\n' + module['output_file']
+                        )
+                    )
+
+        for node in modules:
+            fig.add_node(node)
+
+        for i in range(len(modules)-1):
+            fig.add_edge(pydotplus.Edge(modules[i], modules[i+1]))
+
+        fig.write_png(self.conf['name'] + '.png')
 
 
     ## The function to generate practical configurations for modules to run.
