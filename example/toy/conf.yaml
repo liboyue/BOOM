@@ -1,4 +1,4 @@
-name: test_pipeline
+name: toy_pipeline
 host: localhost
 
 modules:
