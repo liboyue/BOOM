@@ -156,8 +156,14 @@ class Pipeline:
         data = Data.from_json(body.decode('ascii'))
 
         if data.consumer != None:
-            # Send job to the following module
-            self.send_job(data.consumer, data)
+            # Send job to the following module.
+            for module in self.conf['modules']:
+                if module['name'] == data.consumer:
+                    conf = module
+                    break
+            for params in self.expand_params(conf):
+                data.params = params
+                self.send_job(data.consumer, data)
         else:
             # Job compeleted
             log.info('Job completed ' + str(data))
