@@ -31,7 +31,10 @@ create complex pipelines and tune parameters automatically.
     \subsection{Automatical parameter tuning}
     The framework should be able to automatically tune some parameters that have been exposed to the system by the pipeline developers.
 
-    \subsection{Distributed parallel processing}
+    \subsection{Easy to develop users' modules}
+    The framwork should support a easy way for users to develop their own modules.
+
+    \subsection{Automatical parameter tuning}
     The framework should support distributed parallel processing to handle large datasets and complicated pipelines (e.g. pipelines with several components).
 
     \subsection{Automatical load balancing}
@@ -159,6 +162,16 @@ create complex pipelines and tune parameters automatically.
         \item Configuration: the configuration that produced the data object.
     \end{itemize}
 
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=0.3\textwidth]{fig/data_uml.png}
+        \end{center}
+        \label{fig:data_uml}
+        \caption{UML diagram for data class.}
+    \end{figure}
+
+
     \subsection{File format}
     A data file has a description contains the following fileds:
     \begin{itemize}
@@ -169,22 +182,35 @@ create complex pipelines and tune parameters automatically.
     \end{itemize}
 
 
-    \subsection{Dataset}
-    Datasets are handled by the dataset class.
-
-    \begin{figure}[H]
-        \begin{center}
-            \includegraphics[width=0.3\textwidth]{fig/dataset_uml.png}
-        \end{center}
-        \label{fig:dataset_uml}
-        \caption{UML diagram for the dataset class.}
-    \end{figure}
-
     \subsection{Configuration file}
     We use YAML files to configure the framework.
 
 
 \section{Example pipeline}
+    \section{Toy example}
+    This pipeline consists of three sample modules,
+    which do nothing but add it own configuration and parameters to the data to show this pipeline is working.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/toy_pipeline.png}
+        \end{center}
+        \label{fig:toy_pipeline}
+        \caption{The structure for toy pipeline}
+    \end{figure}
+
+
+    \section{BioAsq example}
+    This pipeline is a fully operational BioAsq pipeline.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/bioasq_pipeline.png}
+        \end{center}
+        \label{fig:bioasq_pipeline}
+        \caption{The structure for BioAsq pipeline}
+    \end{figure}
+
 
 \section{Experiments}
     \subsection{Dataset1}
