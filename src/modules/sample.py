@@ -3,7 +3,7 @@ import json
 import sys
 from .module import Module
 
-class SampleModule(Module):
+class Sample(Module):
 
     def __init__(self, module_id, name, host, **kwargs):
         super().__init__(module_id, name, host, **kwargs)

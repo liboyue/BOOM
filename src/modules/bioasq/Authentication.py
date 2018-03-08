@@ -30,7 +30,6 @@ class Authentication:
      ## extract the entire URL needed from the HTML form (action attribute) returned - looks similar to https://utslogin.nlm.nih.gov/cas/v1/tickets/TGT-36471-aYqNLN2rFIJPXKzxwdTNC5ZT7z3B3cTAKfSc5ndHQcUxeaDOLN-cas
      ## we make a POST call to this URL in the getst method
      tgt = d.find('form').attr('action')
-     print tgt
      return tgt
 
    def getst(self,tgt):

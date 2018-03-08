@@ -197,7 +197,6 @@ class Pipeline:
                 
                 # Shut down the pipeline.
                 for module in self.conf['modules']:
-                    log.info(module)
                     for i in range(module['instances']):
                         self.send_command(module['name'], -1, 'shutdown')
 

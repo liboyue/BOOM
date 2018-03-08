@@ -7,5 +7,5 @@ setup(name='src',
       author='Boyue & Nico',
       author_email='boyuel@andrew.cmu.edu',
       url='https://www.python.org/sigs/distutils-sig/',
-      packages=['src', 'src.modules']
+      packages=['src', 'src.modules', 'src.modules.bioasq']
      )

@@ -1,4 +1,4 @@
-from src.bioasq_modules.SimilarityMeasure import SimilarityMeasure
+from .SimilarityMeasure import SimilarityMeasure
 from nltk.tokenize import word_tokenize
 
 

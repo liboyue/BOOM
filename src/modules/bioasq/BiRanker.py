@@ -1,7 +1,6 @@
 import abc
 from abc import abstractmethod
 
-from flask import Flask, request, abort
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords

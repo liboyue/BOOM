@@ -114,7 +114,6 @@ class Fusion(Tiler):
 
 
 	def readInDocument(self,doc):
-		print "========= Read In Document  ========="
 		self.document = doc
 		self.updateBigrams(doc)
 

@@ -1,7 +1,7 @@
 import re, math
 from collections import Counter
 
-from SimilarityMeasure import *
+from .SimilarityMeasure import *
 
 
 class SimilarityCosine(SimilarityMeasure):

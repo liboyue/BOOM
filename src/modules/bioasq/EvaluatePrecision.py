@@ -18,6 +18,7 @@ def betterAnswer(baseline, new, questionBody):
 				manual_summmary =  question_i['ideal_answer'][0]
 				[precision_base, recall_base, f_score_base] = r.rouge_l([baseline], [manual_summmary])	
 				[precision_new, recall_new, f_score_new] = r.rouge_l([new], [manual_summmary])	
+                                '''
 
 				print "============================================"
 				print "Ideal_answer \n"
@@ -36,5 +37,6 @@ def betterAnswer(baseline, new, questionBody):
 				else:
 					print "22222"
 					return baseline
+                                        '''
 	return None
 

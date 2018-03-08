@@ -1,4 +1,3 @@
-from flask import Flask, request, abort
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 

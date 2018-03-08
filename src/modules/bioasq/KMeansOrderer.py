@@ -1,6 +1,6 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from src.bioasq_modules.SentenceOrderer import SentenceOrderer
+from .SentenceOrderer import SentenceOrderer
 from scipy.spatial.distance import cosine
 import re, sys
 import numpy as np
