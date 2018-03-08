@@ -4,3 +4,4 @@ glog
 pytest
 pika
 pydotplus
+rouge

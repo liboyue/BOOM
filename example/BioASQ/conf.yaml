@@ -5,7 +5,7 @@ modules:
     -   name: ranker
         type: CoreMMR
         input_file: bioasq_tiny.json
-        output_module: order
+        output_module: orderer
         instances: 1
         params:
             -   name: alpha
@@ -13,7 +13,7 @@ modules:
                 end: 100
                 step_size: 5
 
-    -   name: order
+    -   name: orderer
         type: Orderer
         input_module: ranker
         output_module: tiler
@@ -26,7 +26,7 @@ modules:
 
     -   name: tiler
         type: Tiler
-        input_module: order
+        input_module: orderer
         output_module: rouge
         instances: 1
         params:
@@ -36,7 +36,7 @@ modules:
                 step_size: 25
 
     -   name: rouge
-        type: RougeModule
+        type: Rouge
         input_module: tiler
         output_file: bioasq_out.json
         instances: 1

@@ -1,9 +1,9 @@
 import sys, json
 import glog as log
 from .module import Module
-from rouge import Rouge
+from rouge import Rouge as RougeLib
 
-class RougeModule(Module):
+class Rouge(Module):
 
     def __init__(self, module_id, name, host, **kwargs):
         super().__init__(module_id, name, host, **kwargs)
@@ -17,7 +17,7 @@ class RougeModule(Module):
 
         data = self.read_from(job.data_uri)
 
-        evaluator = Rouge()
+        evaluator = RougeLib()
         all_scores = []
         f_scores = []
         for question in data:
