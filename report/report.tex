@@ -30,12 +30,11 @@ create complex pipelines and tune parameters automatically.
 
     \subsection{Automatical parameter tuning}
     The framework should be able to automatically tune some parameters that have been exposed to the system by the pipeline developers.
+    \subsection{Load balancing}
+    The framework should be able to handle load balancing since different modules require different excution time.
 
-    \subsection{Distributed parallel processing}
-    The framework should support distributed parallel processing to handle large datasets and complicated pipelines (e.g. pipelines with several components).
-
-    \subsection{Automatical load balancing}
-    The framework should automatically handle load balancing since different modules need different excution time.
+    \subsection{Easy to develop users' modules}
+    The framwork should support a easy way for users to develop their own modules.
 
 \section{Design}
 
@@ -90,6 +89,7 @@ create complex pipelines and tune parameters automatically.
     Figure \ref{fig:sample_pipeline} shows a sample pipeline which passes the input information object
     through some modules and produces the output information object.
 
+    We also provide an command line executable, to ease users' pain of coding.
 
 
     \subsection{Pipeline}
@@ -114,6 +114,7 @@ create complex pipelines and tune parameters automatically.
         \item Input module.
         \item Output module.
         \item Parameters.
+        \item Number of instances.
         \item Configuration of the pipeline.
     \end{itemize}
 
@@ -148,9 +149,9 @@ create complex pipelines and tune parameters automatically.
         \caption{UML diagram for parameter class.}
     \end{figure}
 
-    \subsection{Data}
+    \subsection{Job}
     \label{sec:infomation_object}
-    The data class is the information object used to pass data between modules.
+    The job class is the information object used to pass jobs between modules.
     It maintains the following fileds:
     \begin{itemize}
         \item Producing module: the module that produced this information object.
@@ -158,6 +159,16 @@ create complex pipelines and tune parameters automatically.
         \item Data path: the path to actual data file.
         \item Configuration: the configuration that produced the data object.
     \end{itemize}
+
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=0.3\textwidth]{fig/job_uml.png}
+        \end{center}
+        \label{fig:job_uml}
+        \caption{UML diagram for job class.}
+    \end{figure}
+
 
     \subsection{File format}
     A data file has a description contains the following fileds:
@@ -169,22 +180,54 @@ create complex pipelines and tune parameters automatically.
     \end{itemize}
 
 
-    \subsection{Dataset}
-    Datasets are handled by the dataset class.
-
-    \begin{figure}[H]
-        \begin{center}
-            \includegraphics[width=0.3\textwidth]{fig/dataset_uml.png}
-        \end{center}
-        \label{fig:dataset_uml}
-        \caption{UML diagram for the dataset class.}
-    \end{figure}
-
     \subsection{Configuration file}
     We use YAML files to configure the framework.
 
+    \subsection{Executable}
+    We provide an executable that reads in the configuration file, and runs all possible configurations.
+
+\section{Implemented Modules}
+
+    Table \ref{tbl:modules} listed all modules and their parameters we implemented.
+
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{|l|l|}
+            \hline
+            Module  & Parameters \\ \hline
+            CoreMMR &            \\ \hline
+            Orderer &            \\ \hline
+            Tiler   &            \\ \hline
+        \end{tabular}
+        \caption{Table of implemented modules.}
+        \label{tbl:modules}
+    \end{table}
 
 \section{Example pipeline}
+    \subsection{Toy example}
+    This pipeline consists of three sample modules,
+    which do nothing but add it own configuration and parameters to the data to show this pipeline is working.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/toy_pipeline.png}
+        \end{center}
+        \label{fig:toy_pipeline}
+        \caption{The structure for toy pipeline}
+    \end{figure}
+
+
+    \subsection{BioAsq example}
+    This pipeline is a fully operational BioAsq pipeline.
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/bioasq_pipeline.png}
+        \end{center}
+        \label{fig:bioasq_pipeline}
+        \caption{The structure for BioAsq pipeline}
+    \end{figure}
+
 
 \section{Experiments}
     \subsection{Dataset1}

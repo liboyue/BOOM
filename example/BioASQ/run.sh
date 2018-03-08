@@ -1,2 +1,2 @@
-export PYTHONPATH=../../:$PYTHONPATH
-python run.py
+#!/bin/bash
+boom -plot true

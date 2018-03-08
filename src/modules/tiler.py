@@ -1,9 +1,9 @@
 import sys, json
 import glog as log
 from .module import Module
-from rouge import Rouge
+from .bioasq.Concatenation import Concatenation
 
-class RougeModule(Module):
+class Tiler(Module):
 
     def __init__(self, module_id, name, host, **kwargs):
         super().__init__(module_id, name, host, **kwargs)
@@ -14,18 +14,12 @@ class RougeModule(Module):
         job.save_uri = job.save_uri + self.name + '_' + json.dumps(job.params) + '_'
 
         log.debug(job.data_uri)
-
         data = self.read_from(job.data_uri)
 
-        evaluator = Rouge()
-        all_scores = []
-        f_scores = []
+        concatenator = Concatenation()
+        result = []
         for question in data:
-            score = evaluator.get_scores(question[0], question[1])[0]['rouge-1']
-            all_scores.append(score)
-            f_scores.append(score['f'])
-
-        result = {'individual': all_scores, 'average': sum(f_scores)/len(f_scores)}
+            result.append((concatenator.tileSentences(question[0], job.params['word_limit']), question[1]))
         log.debug(data)
 
         job.data_uri = job.save_uri + '.json'

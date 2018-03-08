@@ -1,9 +1,9 @@
-import sys, json
 import glog as log
+import json
+import sys
 from .module import Module
-from rouge import Rouge
 
-class RougeModule(Module):
+class Sample(Module):
 
     def __init__(self, module_id, name, host, **kwargs):
         super().__init__(module_id, name, host, **kwargs)
@@ -13,23 +13,13 @@ class RougeModule(Module):
         job.consumer = self.output_module
         job.save_uri = job.save_uri + self.name + '_' + json.dumps(job.params) + '_'
 
-        log.debug(job.data_uri)
-
         data = self.read_from(job.data_uri)
 
-        evaluator = Rouge()
-        all_scores = []
-        f_scores = []
-        for question in data:
-            score = evaluator.get_scores(question[0], question[1])[0]['rouge-1']
-            all_scores.append(score)
-            f_scores.append(score['f'])
-
-        result = {'individual': all_scores, 'average': sum(f_scores)/len(f_scores)}
+        data['string_list'] = [x + ' processed by ' + self.name + ', params ' + str(job.params) for x in data['string_list']]
         log.debug(data)
 
         job.data_uri = job.save_uri + '.json'
-        self.save_to(result, job.save_uri + '.json')
+        self.save_to(data, job.save_uri + '.json')
         return job
 
 if __name__ == '__main__':
