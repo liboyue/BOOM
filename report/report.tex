@@ -3,17 +3,17 @@
 \usepackage{tabularx}
 \usepackage{graphicx}
 \usepackage{enumerate}
-\usepackage{listings} 
+\usepackage{listings}
 \usepackage{float}
 
 \begin{document}
 
 \title{11-792 Project Report}
- 
+
 \author{Nicholas Gekakis, Boyue Li}
- 
+
 \maketitle
- 
+
 \section{Overview}
 
 In this project, we are building a distributed question answering pipeline framework,
@@ -70,7 +70,7 @@ create complex pipelines and tune parameters automatically.
     Fig. \ref{fig:information_flow} describes the information flow.
     Load balancing server distributes jobs to different modules' instances.
     Once the job is finished, the instance send a confirmation to the load balancing server.
-    
+
 
     Users only need to specify
     \begin{enumerate}
@@ -198,6 +198,7 @@ create complex pipelines and tune parameters automatically.
             CoreMMR &            \\ \hline
             Orderer &            \\ \hline
             Tiler   &            \\ \hline
+            Rouge   &            \\ \hline
         \end{tabular}
         \caption{Table of implemented modules.}
         \label{tbl:modules}
@@ -230,15 +231,13 @@ create complex pipelines and tune parameters automatically.
 
 
 \section{Experiments}
-    \subsection{Dataset1}
-    \subsection{Dataset2}
-    \subsection{Dataset3}
+    \subsection{Dataset}
+    The results were run on a subset (100 total questions) of the bioasq_train_formatted.json dataset.
+    \subsection{Results}
+    Our experimental results show that the best configuration uses the following parameters: alpha=0.65, k=2, word_limit=100.
 
 \section{Conclusion}
 
 \section*{Acknowledgements}
 
 \end{document}
-
-
-
