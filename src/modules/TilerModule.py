@@ -17,11 +17,13 @@ class TilerModule(Module):
         data = self.read_from(job.data_uri)
 
         concatenator = Concatenation()
-        data = concatenator.tileSentences(data)
+        result = []
+        for question in data:
+            result.append((concatenator.tileSentences(question[0], job.params['word_limit']), question[1]))
         log.info(data)
 
         job.data_uri = job.save_uri + '.json'
-        self.save_to(data, job.save_uri + '.json')
+        self.save_to(result, job.save_uri + '.json')
         return job
 
 if __name__ == '__main__':

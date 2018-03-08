@@ -89,8 +89,8 @@ class KMeansOrderer(SentenceOrderer):
 			result.append(self.sentences[c[1]])
 		return result
 
-	def orderSentences(self, sentences, snippets=None, info_dict={'k':2,'max_iter':10,'max_tokens':300}):
-		self.setup(sentences, snippets, info_dict['k'], info_dict['max_iter'],
+	def orderSentences(self, sentences, snippets=None, k=2, info_dict={'k':2,'max_iter':10,'max_tokens':300}):
+		self.setup(sentences, snippets, k, info_dict['max_iter'],
 		           info_dict['max_tokens'])
 
 		if len(self.sentences) < 2:

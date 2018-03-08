@@ -17,11 +17,17 @@ class OrdererModule(Module):
         data = self.read_from(job.data_uri)
 
         orderer = KMeansOrderer()
-        data = orderer.orderSentences(data)
+        result = []
+        for question in data:
+            try:
+                ordered = orderer.orderSentences(question[0], job.params['k'])
+                result.append((ordered, question[1]))
+            except:
+                pass
         log.info(data)
 
         job.data_uri = job.save_uri + '.json'
-        self.save_to(data, job.save_uri + '.json')
+        self.save_to(result, job.save_uri + '.json')
         return job
 
 if __name__ == '__main__':

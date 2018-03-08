@@ -7,10 +7,10 @@ modules:
         input_file: bioasq_mini.json
         output_module: order
         params:
-            -   name: p1
-                start: 0
-                end: 4
-                step_size: 2
+            -   name: alpha
+                start: 50
+                end: 100
+                step_size: 5
 
     -   name: order
         type: Orderer
@@ -25,9 +25,18 @@ modules:
     -   name: tiler
         type: Tiler
         input_module: order
+        output_module: rouge
+        params:
+            -   name: word_limit
+                start: 50
+                end: 200
+                step_size: 25
+    -   name: rouge
+        type: Rouge
+        input_module: tiler
         output_file: bioasq_out.json
         params:
-            -   name: p1
-                start: 50
-                end: 150
-                step_size: 25
+            -   name: none
+                start: 0
+                end: 1
+                step_size: 1

@@ -16,13 +16,15 @@ This code contains the implementation of Abstract method for BiRanker.
 #Class that extends the abstract class BiRanker
 class CoreMMR(BiRanker):
 
+
 	#implementation of the abstract method that takes question as input and returns a ranked list of sentences as output
-	def getRankedList(self, question):
+	def getRankedList(self, question, alpha, beta):
+		self.alpha = alpha
+		self.beta = beta
 		selectedSentences = []
 		snippets = question['snippets']
 		#This is the class method from the BiRanker that is used to compute the positional scores of the sentences in the snippets.
 		pos_dict = {}
-		self.beta = 0
 		best = []
 		current_best = None
 		summaryFinal = ""

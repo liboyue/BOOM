@@ -17,13 +17,15 @@ class MMRModule(Module):
         data = self.read_from(job.data_uri)
 
         ranker = CoreMMR()
-        question = data['questions'][0]
-        question['snippets'] = question['contexts']['long_snippets']
-        data = ranker.getRankedList(question)
+        result = []
+        for i, question in enumerate(data['questions']):
+            question['snippets'] = question['contexts']['long_snippets']
+            answer = question['ideal_answers'][0]
+            result.append((ranker.getRankedList(question, job.params['alpha']/100, 0), answer))
         log.info(data)
 
         job.data_uri = job.save_uri + '.json'
-        self.save_to(data, job.save_uri + '.json')
+        self.save_to(result, job.save_uri + '.json')
         return job
 
 if __name__ == '__main__':
