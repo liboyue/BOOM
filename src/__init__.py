@@ -2,7 +2,7 @@
 Core code of the pipeline framework.
 """
 
-__all__ = ['modules', 'utils', 'Pipeline', 'Parameter', 'Data']
+__all__ = ['modules', 'utils', 'Pipeline', 'Parameter', 'Job']
 
 # from . import modules
 # from . import utils
@@ -10,4 +10,4 @@ __all__ = ['modules', 'utils', 'Pipeline', 'Parameter', 'Data']
 
 from .pipeline import Pipeline
 from .parameter import Parameter
-from .data import Data
+from .job import Job

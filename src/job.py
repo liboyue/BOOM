@@ -3,10 +3,12 @@ import bson
 import glog as log
 from datetime import datetime
 
-class Data:
+class Job:
     """The information object class."""
     
-    def __init__(self, data_uri, save_uri, params = None, producer = None, consumer = None, processing_time = None):
+    def __init__(self, job_id, data_uri, save_uri, params = None, producer = None, consumer = None, processing_time = None):
+        ## The id of this job
+        self.id = job_id
         ## The uri to the data file.
         self.data_uri = data_uri
         ## The uri to save a new data file.
@@ -40,6 +42,7 @@ class Data:
     #  @return the serialized json string.
     def to_json(self):
         return json.dumps({
+            'id': self.id,
             'data_uri': self.data_uri,
             'save_uri': self.save_uri,
             'params': self.params,
@@ -51,11 +54,12 @@ class Data:
 
 
     ## Deserialize the object from a json formatted string.
-    #  @param data the json formatted string.
-    #  @return the deserialize data object.
+    #  @param json_str the json formatted string.
+    #  @return the deserialize Job object.
     def from_json(json_str):
         data = json.loads(json_str)
-        return Data(
+        return Job(
+                data['id'],
                 data['data_uri'],
                 data['save_uri'],
                 data['params'],

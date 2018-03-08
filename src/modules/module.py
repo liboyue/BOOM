@@ -1,30 +1,30 @@
 import json
 import pika
 import glog as log
-from ..data import Data
+from ..job import Job
 
 class Module():
     """The base module class. Every actual module should be derived from this class."""
 
-    def __init__(self, conf, host):
+    def __init__(self, module_id, name, host, **kwargs):
 
-        ## The configuration file.
-        self.conf = conf
+        ## The module's id.
+        self.id = module_id
 
         ## The module's name.
-        self.name = conf['name']
+        self.name = name
 
         ## The module's input file path. None if not exists.
-        self.input_file = conf['input_file'] if 'input_file' in conf else None
+        self.input_file = kwargs['input_file'] if 'input_file' in kwargs else None
 
         ## The module's output file path. None if not exists.
-        self.output_file = conf['output_file'] if 'output_file' in conf else None
+        self.output_file = kwargs['output_file'] if 'output_file' in kwargs else None
 
         ## The module's input module's name. None if not exists.
-        self.input_module = conf['input_module'] if 'input_module' in conf else None
+        self.input_module = kwargs['input_module'] if 'input_module' in kwargs else None
 
         ## The module's output module's name. None if not exists.
-        self.output_module = conf['output_module'] if 'output_module' in conf else None
+        self.output_module = kwargs['output_module'] if 'output_module' in kwargs else None
 
         ## The RabbitMQ server name/IP/url.
         self.host = host
@@ -43,65 +43,78 @@ class Module():
 
 
     def __str__(self):
-        return json.dumps(self.conf)
+        return json.dumps({
+            'name': self.name,
+            'id': self.id,
+            })
 
 
     ## The function to handle incoming jobs.
     def receive_job(self, ch, method, properties, body):
 
         # Parse request body.
-        data = Data.from_json(body.decode('ascii'))
-        log.info(self.name + ' received job: ' + str(data))
+        data = json.loads(body.decode('ascii'))
+        if data['type'] == 'job':
+            job = Job.from_json(data['body'])
+            log.info(self.name + ' received job: ' + str(job.id))
+            log.debug(job)
 
-        # Process data.
-        data = self.process(data)
-        data.update_timestamp()
+            # Process job.
+            job = self.process(job)
+            job.update_timestamp()
 
-        # Update timestampe and processing time.
+            # Update timestampe and processing time.
 
-        # Send back resulting data.
-        ch.basic_publish(
-                exchange = self.exchange,
-                routing_key = properties.reply_to,
-                properties = pika.BasicProperties(),
-                body = data.to_json()
-                )
+            # Send back resulting job.
+            ch.basic_publish(
+                    exchange = 'job',
+                    routing_key = properties.reply_to,
+                    properties = pika.BasicProperties(),
+                    body = job.to_json()
+                    )
 
-        ch.basic_ack(delivery_tag = method.delivery_tag)
-        log.info(self.name + ' sent back job: ' + str(data))
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+            log.info(self.name + ' sent back job: ' + str(job.id))
+            log.debug(job)
 
+        elif data['type'] == 'command':
+            cmd = json.loads(data['body'])
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+            if cmd['module'] == self.id or cmd['module'] == -1:
+                log.warn('Module ' + str(self.id) + ' ' + self.name + ' received command ' + cmd['command'])
 
-    ## Get the configuration of the mdoule.
-    def get_conf(self):
-        return self.conf
+                if cmd['command'] == 'shutdown':
+                    self.channel.stop_consuming()
+                    quit()
+                    
 
 
     ## Get the name of the mdoule.
     def get_name(self):
         return self.name
 
-    ## Load data from path.
-    #  @param path The path to load data.
-    #  @return The data to loaded.
+    ## Load Job from path.
+    #  @param path The path to load job.
+    #  @return The job to loaded.
     def read_from(self, path):
         with open(path) as f:
             return json.load(f)
 
 
-    ## Save data object to path.
-    #  @param data The data to be saved.
-    #  @param path The path to save data.
-    def save_to(self, data, path):
+    ## Save Job object to path.
+    #  @param job The job to be saved.
+    #  @param path The path to save the job.
+    def save_to(self, job, path):
         with open(path, 'w') as f:
-            json.dump(data, f)
+            json.dump(job, f)
 
 
     ## The function to run the algorithm and process data objects.
     #  This function needs to be implemented in each class and should run the
     #  core algorithm for the module, save intermediate results and return the resulting data object.
-    #  @param data Data object to be processed.
+    #  @param job Job object to be processed.
     #  @return The processed data object.
-    def process(self, data):
+    def process(self, job):
         pass
 
 
