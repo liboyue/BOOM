@@ -6,6 +6,7 @@ modules:
         type: CoreMMR
         input_file: bioasq_mini.json
         output_module: order
+        instances: 1
         params:
             -   name: p1
                 start: 0
@@ -16,6 +17,7 @@ modules:
         type: Orderer
         input_module: ranker
         output_module: tiler
+        instances: 1
         params:
             -   name: k
                 start: 2
@@ -26,6 +28,7 @@ modules:
         type: Tiler
         input_module: order
         output_file: bioasq_out.json
+        instances: 1
         params:
             -   name: p1
                 start: 50
