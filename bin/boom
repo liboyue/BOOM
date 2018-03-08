@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+# coding=utf-8
+import asyncio
+import yaml
+import glog as log
+import gflags
+import sys
+import src
+
+FLAGS = gflags.FLAGS
+
+gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
+gflags.DEFINE_boolean('debug', False, 'produces debugging output')
+gflags.DEFINE_boolean('plot', False, 'plots the pipeline')
+
+if __name__ == '__main__':
+    FLAGS(sys.argv)
+
+    with open(FLAGS.conf) as f:
+        conf = yaml.load(f)
+    log.warn('Loading configuration file from: ' + FLAGS.conf)
+
+    l = []
+    cur_id = 0
+    for module in conf['modules']:
+        for i in range(int(module['instances'])):
+            cmd = "python -c \"from src.modules import " + module['type'] + "\n" + module['type'] + "(" + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " + ','.join([k + '=\'' + str(module[k]) +'\'' for k in module if k != 'params' and k != 'name']) + ").run()\""
+            #print(cmd)
+            l.append(asyncio.create_subprocess_shell(cmd))
+            log.warn("Starting module " + module['name'] + " instance " + str(i) + ", instance id = " + str(cur_id))
+            cur_id += 1
+
+    if FLAGS.plot:
+        cmd = "python -c \"import src\np=src.Pipeline('" + FLAGS.conf + "')\np.plot()\np.run()\""
+    else:
+        cmd = "python -c \"import src\np=src.Pipeline('" + FLAGS.conf + "')\np.run()\""
+    #print(cmd)
+    l.append(asyncio.create_subprocess_shell(cmd))
+
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.gather(*l))

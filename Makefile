@@ -3,7 +3,7 @@
 all:
 	make install
 	make test
-	#make doc
+	make doc
 
 install:
 	python setup.py install
