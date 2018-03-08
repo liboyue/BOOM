@@ -12,5 +12,4 @@ test:
 	py.test --verbose --color=yes tests
 
 doc:
-	bash scripts/create_docs.sh
-
+	doxygen Doxyfile
