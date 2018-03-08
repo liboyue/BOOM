@@ -35,7 +35,7 @@ conf_pipeline = {
         ]
     }
 
-conf_module = {
+conf = {
             'name': 'module 1',
             'type': 'SampleModule',
             'input_files': ['data.json'],
@@ -51,4 +51,4 @@ conf_module = {
         }
  
 def test_init():
-    m = Module(conf_module)
+    m = Module(0, conf['name'], 'localhost', input_files=conf['input_files'])

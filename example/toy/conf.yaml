@@ -1,11 +1,12 @@
 name: toy_pipeline
-host: localhost
+host: 127.0.0.1
 
 modules:
     -   name: module_1
         type: SampleModule 
         input_file: data.json
         output_module: module_2
+        instances: 1
         params:
             -   name: p1
                 start: 0
@@ -21,6 +22,7 @@ modules:
         type: SampleModule 
         input_module: module_1
         output_module: module_3
+        instances: 2
         params:
             -   name: p
                 start: 0
@@ -31,6 +33,7 @@ modules:
         type: SampleModule 
         input_module: module_3
         output_file: test.txt
+        instances: 4
         params:
             -   name: p
                 start: 0
