@@ -10,19 +10,19 @@ modules:
         params:
             -   name: alpha
                 start: 50
-                end: 100
-                step_size: 5
+                end: 60
+                step_size: 10
 
     -   name: orderer
         type: Orderer
         input_module: ranker
         output_module: tiler
-        instances: 1
+        instances: 3
         params:
             -   name: k
                 start: 2
                 end: 4
-                step_size: 1
+                step_size: 2
 
     -   name: tiler
         type: Tiler
@@ -40,8 +40,3 @@ modules:
         input_module: tiler
         output_file: bioasq_out.json
         instances: 1
-        params:
-            -   name: none
-                start: 0
-                end: 1
-                step_size: 1
