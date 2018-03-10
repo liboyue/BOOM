@@ -1,5 +1,4 @@
 pyyaml
-gflags
 glog
 pytest
 pika

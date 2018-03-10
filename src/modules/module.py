@@ -60,6 +60,10 @@ class Module():
             log.debug(job)
 
             # Process job.
+            job.producer = self.name
+            job.consumer = self.output_module
+            job.save_uri = job.save_uri + self.name + '_' + json.dumps(job.params) + '_'
+
             job = self.process(job)
             job.update_timestamp()
 

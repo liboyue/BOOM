@@ -3,9 +3,10 @@
 all:
 	make install
 	make test
-	make doc
+	#make doc
 
 install:
+	pip install -r requirements.txt
 	python setup.py install
 
 test:
