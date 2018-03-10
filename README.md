@@ -30,3 +30,6 @@ One is a toy pipeline showing how to use this framework, the other is an actual 
 ## Warning
 This framework is still under heavy developments,
 please be careful.
+
+## API documentation
+You can find the API documentation [here](https://bioasq.boyue.li).
