@@ -89,9 +89,9 @@ class Pipeline:
         total = 0
         level = 1
         for mod in conf['modules']:
-            for param in mod['params']:
-                print(param)
-                level *= (param['end'] - param['start']) / param['step_size'] + 1
+            if 'params' in mod:
+                for param in mod['params']:
+                    level *= (param['end'] - param['start']) / param['step_size'] + 1
             total += level
         return int(total)
 
@@ -114,8 +114,9 @@ class Pipeline:
                     )
 
             label = ''
-            for params in module['params']:
-                label += 'param ' + params['name'] + ' range: [' + str(params['start']) + ', ' + str(params['step_size']) + ', ' + str(params['end']) + ']\n' 
+            if 'params' in module:
+                for params in module['params']:
+                    label += 'param ' + params['name'] + ' range: [' + str(params['start']) + ', ' + str(params['step_size']) + ', ' + str(params['end']) + ']\n' 
 
             modules.append(
                 pydotplus.Node(
@@ -146,7 +147,7 @@ class Pipeline:
     ## The function to generate practical configurations for modules to run.
     #  @return Job objects. 
     def expand_params(self, mod_conf, i = 0):
-        if i < len(mod_conf['params']):
+        if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
                 for val in range(
                         mod_conf['params'][i]['start'],
