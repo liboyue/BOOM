@@ -256,9 +256,9 @@ class Fusion(Tiler):
                 sim = SimilarityJaccard(s1, s2).calculateSimilarity()
                 if sim < 0.1:
                     continue
-                 else:
-                     self.candidates += _fuseSentence([s1,s2])
-                 #print "========= FUSINGGGGG ===== "
+                else:
+                    self.candidates += _fuseSentence([s1,s2])
+                #print "========= FUSINGGGGG ===== "
         self.candidates = list(set(self.candidates))
         print "len candidate", len(self.candidates)
 
