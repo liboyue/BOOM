@@ -260,7 +260,7 @@ class Fusion(Tiler):
                     self.candidates += _fuseSentence([s1,s2])
                 #print "========= FUSINGGGGG ===== "
         self.candidates = list(set(self.candidates))
-        print "len candidate", len(self.candidates)
+        #print "len candidate", len(self.candidates)
 
         new_sentences = self._selectSentences(pred_length)
 
