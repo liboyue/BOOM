@@ -29,7 +29,7 @@ class Pipeline:
         log.info(json.dumps(self.conf, indent = 4))
 
         ## Name of the pipeline.
-        self.name = self.conf['name']
+        self.name = self.conf['pipeline']['name']
 
         ## The configuration of each module.
         self.modules = {mod_conf['name']: mod_conf for mod_conf in self.conf['modules']}
@@ -43,10 +43,10 @@ class Pipeline:
         self.job_status = set()
 
         ## The RabbitMQ server name/IP/url.
-        self.host = self.conf['host']
+        self.rabbit_host = self.conf['pipeline']['rabbit_host']
 
         ## The connection the pipeline instance uses.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.host))
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbit_host))
 
         ## The channel the pipeline instance uses.
         self.channel = self.connection.channel()
@@ -97,7 +97,7 @@ class Pipeline:
 
     ## The function to plot the pipeline.
     def plot(self):
-        fig = pydotplus.Dot(graph_name=self.conf['name'],rankdir="LR", labelloc='b', labeljust='r', ranksep=1)
+        fig = pydotplus.Dot(graph_name=self.conf['pipeline']['name'],rankdir="LR", labelloc='b', labeljust='r', ranksep=1)
         fig.set_node_defaults(shape='square')
 
         modules = []
@@ -141,7 +141,7 @@ class Pipeline:
         for i in range(len(modules)-1):
             fig.add_edge(pydotplus.Edge(modules[i], modules[i+1]))
 
-        fig.write_png(self.conf['name'] + '.png')
+        fig.write_png(self.conf['pipeline']['name'] + '.png')
 
 
     ## The function to generate practical configurations for modules to run.

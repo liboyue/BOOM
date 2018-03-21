@@ -1,5 +1,9 @@
-name: toy_pipeline
-host: 127.0.0.1
+pipeline:
+    name: toy_pipeline
+    rabbit_host: 127.0.0.1
+    clean_up: false
+    use_mongodb: false
+    mongodb_host: 127.0.0.1
 
 modules:
     -   name: module_1

@@ -6,7 +6,7 @@ from ..job import Job
 class Module():
     """The base module class. Every actual module should be derived from this class."""
 
-    def __init__(self, module_id, name, host, **kwargs):
+    def __init__(self, module_id, name, rabbit_host, **kwargs):
 
         ## The module's id.
         self.id = module_id
@@ -27,13 +27,13 @@ class Module():
         self.output_module = kwargs['output_module'] if 'output_module' in kwargs else None
 
         ## The RabbitMQ server name/IP/url.
-        self.host = host
+        self.rabbit_host = rabbit_host
 
         ## The exchange the pipeline uses.
         self.exchange = ''
  
         ## The connection the module instance uses.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.host))
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbit_host))
 
         ## The channel the module instance uses.
         self.channel = self.connection.channel()
