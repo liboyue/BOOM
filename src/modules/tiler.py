@@ -1,28 +1,23 @@
-import sys, json
 import glog as log
 from .module import Module
 from .bioasq.Concatenation import Concatenation
 
 class Tiler(Module):
 
-    def __init__(self, module_id, name, host, **kwargs):
-        super().__init__(module_id, name, host, **kwargs)
+    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        self.concatenator = Concatenation()
 
-    def process(self, job):
+    def process(self, job, data):
 
-        log.debug(job.data_uri)
-        data = self.read_from(job.data_uri)
+        log.debug(job.input_uri)
 
-        concatenator = Concatenation()
         result = []
         for question in data:
-            result.append((concatenator.tileSentences(question[0], job.params['word_limit']), question[1]))
-        log.debug(data)
+            result.append((self.concatenator.tileSentences(question[0], job.params['word_limit']), question[1]))
+        log.debug(result)
 
-        job.data_uri = job.save_uri + '.json'
-        self.save_to(result, job.data_uri)
-
-        return job
+        return result
 
 if __name__ == '__main__':
     pass

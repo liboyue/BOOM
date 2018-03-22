@@ -10,7 +10,7 @@ import pydotplus
 
 class Pipeline:
     "The pipeline class creates the pipeline, and manages execution."
-    
+
     ##  Initialization.
     #  @param conf_path The path to the configuration file.
     def __init__(self, conf_path):
@@ -31,6 +31,15 @@ class Pipeline:
         ## Name of the pipeline.
         self.name = self.conf['pipeline']['name']
 
+        ## Clean up or not after running.
+        self.clean_up = self.conf['pipeline']['clean_up'] if 'clean_up' in self.conf['pipeline'] else False
+
+        ## Use MongoDB or not.
+        self.use_mongodb = self.conf['pipeline']['use_mongodb'] if 'use_mongodb' in self.conf['pipeline'] else False
+
+        ## MongoDB's host.
+        self.mongodb_host = self.conf['pipeline']['mongodb_host'] if 'mongodb_host' in self.conf['pipeline'] else None
+
         ## The configuration of each module.
         self.modules = {mod_conf['name']: mod_conf for mod_conf in self.conf['modules']}
         log.info('Module list: ' + str(self.modules))
@@ -43,17 +52,17 @@ class Pipeline:
         self.job_status = set()
 
         ## The RabbitMQ server name/IP/url.
-        self.rabbit_host = self.conf['pipeline']['rabbit_host']
+        self.rabbitmq_host = self.conf['pipeline']['rabbitmq_host']
 
         ## The connection the pipeline instance uses.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbit_host))
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
 
         ## The channel the pipeline instance uses.
         self.channel = self.connection.channel()
 
         ## The exchange the pipeline uses.
         self.channel.exchange_declare(exchange='job', exchange_type='direct')
-        
+
         ## The confirmation queue the pipeline instance uses.
         self.callback_queue = self.channel.queue_declare(queue='call_back').method.queue
 
@@ -75,8 +84,8 @@ class Pipeline:
         self.channel.queue_bind(exchange='job', queue=self.callback_queue)
 
         ## The directory to save results.
-        self.save_dir = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime()) + '/'
-        os.mkdir(self.save_dir)
+        self.output_base = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime()) + '/'
+        os.mkdir(self.output_base)
 
 
     def __str__(self, module=None, indent=0):
@@ -145,7 +154,7 @@ class Pipeline:
 
 
     ## The function to generate practical configurations for modules to run.
-    #  @return Job objects. 
+    #  @return Job objects.
     def expand_params(self, mod_conf, i = 0):
         if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
@@ -195,7 +204,7 @@ class Pipeline:
                     if len(self.job_status) > 0:
                             flag = True
                             time.sleep(1)
-                
+
                 # Shut down the pipeline.
                 for module in self.conf['modules']:
                     for i in range(module['instances']):
@@ -203,6 +212,11 @@ class Pipeline:
 
                 log.warn('All jobs are completed, shutting down the pipeline')
                 self.channel.stop_consuming()
+
+                if self.clean_up:
+                    log.warn('Cleaning up intermediate files')
+                    os.system('rm ' + self.output_base + '*.json')
+
                 quit()
 
 
@@ -248,9 +262,9 @@ class Pipeline:
                     Job(
                         self.cur_job_id,
                         self.conf['modules'][0]['input_file'],
-                        self.save_dir,
+                        self.output_base,
+                        '',
                         params,
-                        self.conf['modules'][0]['input_file'],
                         self.conf['modules'][0]['name'],
                         self.conf['modules'][0]['output_module']
                         )
@@ -259,3 +273,6 @@ class Pipeline:
 
         # Start running
         self.channel.start_consuming()
+
+if __name__ == '__main__':
+    pass

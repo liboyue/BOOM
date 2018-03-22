@@ -6,13 +6,15 @@ from datetime import datetime
 class Job:
     """The information object class."""
     
-    def __init__(self, job_id, data_uri, save_uri, params = None, producer = None, consumer = None, processing_time = None):
+    def __init__(self, job_id, input_uri, output_base, output_path, params = None, producer = None, consumer = None, processing_time = None):
         ## The id of this job
         self.id = job_id
         ## The uri to the data file.
-        self.data_uri = data_uri
-        ## The uri to save a new data file.
-        self.save_uri = save_uri
+        self.input_uri = input_uri
+        ## The base uri/db to save a new data file.
+        self.output_base = output_base
+        ## The path/key to save a new data file.
+        self.output_path = output_path
         ## The params may be needed.
         self.params = params
         ## The timastampe when the object is created.
@@ -24,7 +26,7 @@ class Job:
         ## The time to process the data object.
         self.processing_time = processing_time
 
-        log.debug('Creating data object, uri: ' + data_uri)
+        log.debug('Creating data object: ' + str(self))
 
 
     def __str__(self):
@@ -43,8 +45,9 @@ class Job:
     def to_json(self):
         return json.dumps({
             'id': self.id,
-            'data_uri': self.data_uri,
-            'save_uri': self.save_uri,
+            'input_uri': self.input_uri,
+            'output_base': self.output_base,
+            'output_path': self.output_path,
             'params': self.params,
             'timestamp': str(self.timestamp),
             'producer': self.producer,
@@ -60,8 +63,9 @@ class Job:
         data = json.loads(json_str)
         return Job(
                 data['id'],
-                data['data_uri'],
-                data['save_uri'],
+                data['input_uri'],
+                data['output_base'],
+                data['output_path'],
                 data['params'],
                 data['producer'],
                 data['consumer'],
