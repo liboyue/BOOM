@@ -14,8 +14,8 @@ class Orderer(Module):
         result = []
         for question in data:
             try:
-                ordered = self.orderer.orderSentences(question[0], job.params['k'])
-                result.append((ordered, question[1]))
+                ordered = self.orderer.orderSentences(question, job.params['k'])
+                result.append(ordered)
             except:
                 pass
         log.debug(result)

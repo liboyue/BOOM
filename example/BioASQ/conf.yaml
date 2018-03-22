@@ -8,7 +8,7 @@ pipeline:
 modules:
     -   name: ranker
         type: CoreMMR
-        input_file: bioasq_tiny.json
+        input_file: BioASQ_task6bPhaseB_testset1.json
         output_module: orderer
         instances: 1
         params:
@@ -31,7 +31,7 @@ modules:
     -   name: tiler
         type: Tiler
         input_module: orderer
-        output_module: rouge
+        output_module: csv
         instances: 1
         params:
             -   name: word_limit
@@ -39,14 +39,8 @@ modules:
                 end: 200
                 step_size: 25
 
-    -   name: rouge
-        type: Rouge
-        input_module: tiler
-        output_module: csv
-        instances: 1
-
     -   name: csv
         type: CSVWriter
-        input_module: rouge
-        output_file: results.csv 
+        input_module: tiler
+        output_file: results.csv
         instances: 1

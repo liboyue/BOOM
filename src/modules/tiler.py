@@ -12,9 +12,10 @@ class Tiler(Module):
 
         log.debug(job.input_uri)
 
-        result = []
-        for question in data:
-            result.append((self.concatenator.tileSentences(question[0], job.params['word_limit']), question[1]))
+        result = {}
+        for i, question in enumerate(data):
+            key = "result_" + str(i)
+            result[key] = self.concatenator.tileSentences(question, job.params['word_limit'])
         log.debug(result)
 
         return result

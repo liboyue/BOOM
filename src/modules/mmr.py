@@ -12,9 +12,10 @@ class CoreMMR(Module):
 
         result = []
         for i, question in enumerate(data['questions']):
-            question['snippets'] = question['contexts']['long_snippets']
-            answer = question['ideal_answers'][0]
-            result.append((self.ranker.getRankedList(question, job.params['alpha']/100, 0), answer))
+            #question['snippets'] = question['contexts']['long_snippets']
+            #answer = question['ideal_answers'][0]
+            question['snippets'] = list(map(lambda x: x['text'], question['snippets']))
+            result.append(self.ranker.getRankedList(question, job.params['alpha']/100, 0))
         log.debug(result)
 
         return result
