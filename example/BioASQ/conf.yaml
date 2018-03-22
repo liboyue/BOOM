@@ -1,6 +1,6 @@
 pipeline:
     name: bioasq_pipeline
-    rabbit_host: 127.0.0.1
+    rabbitmq_host: 127.0.0.1
     clean_up: false
     use_mongodb: false
     mongodb_host: 127.0.0.1
@@ -42,5 +42,11 @@ modules:
     -   name: rouge
         type: Rouge
         input_module: tiler
-        output_file: bioasq_out.json
+        output_module: csv
+        instances: 1
+
+    -   name: csv
+        type: CSVWriter
+        input_module: rouge
+        output_file: results.csv 
         instances: 1

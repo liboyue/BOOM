@@ -19,7 +19,8 @@ class Rouge(Module):
             all_scores.append(score)
             f_scores.append(score['f'])
 
-        result = {'individual': all_scores, 'average': sum(f_scores)/len(f_scores)}
+        #result = {'individual': all_scores, 'average': sum(f_scores)/len(f_scores)}
+        result = {'average': sum(f_scores)/len(f_scores)}
         log.info(result)
 
         return result

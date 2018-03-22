@@ -92,7 +92,7 @@ class Module():
 
             ch.basic_ack(delivery_tag = method.delivery_tag)
             log.info(self.name + ' sent back job: ' + str(job.id))
-            log.info(job)
+            log.debug(job)
 
         elif data['type'] == 'command':
             cmd = json.loads(data['body'])
