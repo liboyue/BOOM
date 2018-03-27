@@ -102,7 +102,6 @@ class Module():
 
                 if cmd['command'] == 'shutdown':
                     self.channel.stop_consuming()
-                    quit()
 
 
     ## Get the name of the mdoule.
