@@ -175,6 +175,7 @@ class Pipeline:
 
         if job.consumer != None:
             # Send job to the following module.
+            conf = {}
             for module in self.conf['modules']:
                 if module['name'] == job.consumer:
                     conf = module
