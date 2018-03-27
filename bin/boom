@@ -12,6 +12,7 @@ import asyncio
 if __name__ == '__main__':
     gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
     gflags.DEFINE_boolean('plot', False, 'plots the pipeline')
+    gflags.DEFINE_boolean('profile', False, 'profile each module')
     gflags.DEFINE_boolean('help', False, 'print the help message')
 
     gflags.DEFINE_boolean('print_jobs', False, 'print the help message')
@@ -34,16 +35,20 @@ if __name__ == '__main__':
     for module in conf['modules']:
         module['params'] = None
         for i in range(int(module['instances'])):
-            cmd = "python -c \"import sys\nimport gflags\nfrom src.modules import " + module['type'] + "\n" \
+            code = "import sys\nimport gflags\nfrom src.modules import " + module['type'] + "\n" \
                 + "FLAGS = gflags.FLAGS\nFLAGS(sys.argv)\n" \
                 + module['type'] + "(" \
                 + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " \
                 + str(conf['pipeline']) \
                 + ',' + str(module) \
-                + ").run()\"" \
-                + " -verbosity=" + FLAGS.verbosity
-                #+ ','.join([k + '=\'' + str(module[k]) + '\'' for k in module if k != 'params' and k != 'name']) + ',' \
-                #+ ','.join([k + '=' + str(conf['pipeline'][k]) for k in conf['pipeline'] if k != 'rabbitmq_host' and k != 'name']) \
+                + ").run()\n"
+            if FLAGS.profile :
+                log.warn("Profile module " + module['name'])
+                code = "import cProfile, pstats, io\npr = cProfile.Profile()\npr.enable()\n" + code + "pr.disable()\ns = io.StringIO()\npstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats()\nwith open('profile_" + module['name']+ ".txt', 'w') as f:\n    f.write(s.getvalue())\n"
+
+            cmd = "python -c \"" + code + "\" -verbosity=" + FLAGS.verbosity
+            #+ ','.join([k + '=\'' + str(module[k]) + '\'' for k in module if k != 'params' and k != 'name']) + ',' \
+            #+ ','.join([k + '=' + str(conf['pipeline'][k]) for k in conf['pipeline'] if k != 'rabbitmq_host' and k != 'name']) \
             log.debug(cmd)
             l.append(asyncio.create_subprocess_shell(cmd))
             log.warn("Starting module " + module['name'] + " instance " + str(i) + ", instance id = " + str(cur_id))
