@@ -11,10 +11,13 @@ class SimilarityJaccard(SimilarityMeasure):
         s2 = word_tokenize(s2.lower())
         #s1_u_s2 = set()
         #s1_i_s2 = set()
-        set1 = {i for i in s1 if i not in self.stopWords}
-        set2 = {i for i in s2 if i not in self.stopWords}
-        self.score = len(set1.intersection(set2)) / len(set1.union(set2))
-        return self.score
+        set1 = set([i for i in s1 if i not in self.stopWords])
+        set2 = set([i for i in s2 if i not in self.stopWords])
+        intersection = sum([1 for w in set1 if w in set2])
+        union = len(set1) + len(set2) - intersection
+        #self.score = len(set1.intersection(set2)) / len(set1.union(set2))
+        #return self.score
+        return intersection / union
 
 """
 instance = SimilarityJaccard("apple banana cat dog", "apple elephant cat dog")
