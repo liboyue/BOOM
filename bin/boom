@@ -14,9 +14,9 @@ if __name__ == '__main__':
     gflags.DEFINE_boolean('plot', False, 'plots the pipeline')
     gflags.DEFINE_boolean('profile', False, 'profile each module')
     gflags.DEFINE_boolean('help', False, 'print the help message')
+    gflags.DEFINE_boolean('info', False, 'print details about the pipeline, including how many modules, how many jobs, etc.')
 
-    gflags.DEFINE_boolean('print_jobs', False, 'print the help message')
-
+    # Parse args
     FLAGS = gflags.FLAGS
     FLAGS(sys.argv)
 
@@ -24,12 +24,21 @@ if __name__ == '__main__':
         print(FLAGS)
         quit()
 
-    log.warn('Loglevel: ' + FLAGS.verbosity)
-
+    # Load conf
     with open(FLAGS.conf) as f:
         conf = yaml.load(f)
-    log.warn('Loading configuration file from: ' + FLAGS.conf)
+    log.warn('Loglevel: ' + FLAGS.verbosity)
+    log.warn('Loaded configuration file from: ' + FLAGS.conf)
 
+    # Print info
+    if (FLAGS.info):
+        from src import Pipeline
+        n_jobs = Pipeline.calculate_total_jobs(None, conf)
+        n_modules = len(conf['modules'])
+        print('There are ' + str(n_modules) + ' modules in pipeline ' + conf['pipeline']['name'] + ', ' + str(n_jobs) + ' jobs in total.')
+        quit()
+
+    # Generate command for each module
     l = []
     cur_id = 0
     for module in conf['modules']:
@@ -54,6 +63,7 @@ if __name__ == '__main__':
             log.warn("Starting module " + module['name'] + " instance " + str(i) + ", instance id = " + str(cur_id))
             cur_id += 1
 
+    # Generate command for pipeline
     if FLAGS.plot:
         cmd = "python -c \"import sys\nimport gflags\nimport src\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=src.Pipeline('" + FLAGS.conf + "')\np.plot()\np.run()\" -verbosity=" + FLAGS.verbosity
     else:
@@ -62,5 +72,7 @@ if __name__ == '__main__':
     l.append(asyncio.create_subprocess_shell(cmd))
 
 
+    # Start
     loop = asyncio.get_event_loop()
+    # Wait
     loop.run_until_complete(asyncio.gather(*l))
