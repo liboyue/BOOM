@@ -106,7 +106,7 @@ class Pipeline:
         for mod in conf['modules']:
             if 'params' in mod:
                 for param in mod['params']:
-                    level *= (param['end'] - param['start']) / param['step_size'] + 1
+                    level *= Parameter(param).get_n_choices()
             total += level
         return int(total)
 
@@ -164,20 +164,8 @@ class Pipeline:
     def expand_params(self, mod_conf, i = 0):
         if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
-                if type(mod_conf['params'][i]['start']) == float or type(mod_conf['params'][i]['end']) == float or type(mod_conf['params'][i]['step_size']) == float:
-                    for val in np.arange(
-                            mod_conf['params'][i]['start'],
-                            mod_conf['params'][i]['end'] + mod_conf['params'][i]['step_size'],
-                            mod_conf['params'][i]['step_size']
-                            ):
-                        yield {**{mod_conf['params'][i]['name']: val.astype(float)}, **tmp}
-                else:
-                    for val in range(
-                            mod_conf['params'][i]['start'],
-                            mod_conf['params'][i]['end'] + mod_conf['params'][i]['step_size'],
-                            mod_conf['params'][i]['step_size']
-                            ):
-                        yield {**{mod_conf['params'][i]['name']: val}, **tmp}
+                for val in Parameter(mod_conf['params'][i]).get_values():
+                    yield {**{mod_conf['params'][i]['name']: val}, **tmp}
         else:
             yield {}
 

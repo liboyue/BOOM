@@ -1,50 +1,62 @@
 class Parameter:
-    """This class."""
+    """This class handles parameters."""
 
     def __init__(self, conf):
         ## Name of the parameter.
         self.name = conf['name']
-        ## Starting value of the parameter.
-        self.start = conf['start']
-        ## Ending value of the parameter.
-        self.end = conf['end']
-        ## Step size for each update.
-        self.step_size = conf['step size']
-        ## Value of the parameter.
-        self.val = self.start
+        ## Type of the parameter. It is one of 'float', 'int' or 'collection'.
+        self.type = conf['type']
+        if self.type == 'collection':
+            self.values = conf['values']
+        else:
+            ## Starting value of the parameter.
+            self.start = conf['start']
+            ## Ending value of the parameter.
+            self.end = conf['end']
+            ## Step size for each update.
+            self.step_size = conf['step_size']
+        print(self.__str__())
 
     def __str__(self):
-        return 'name: ' + str(self.name) \
-                + ', start: ' + str(self.start) \
-                + ', end: ' + str(self.end) \
-                + ', step size: ' + str(self.step_size)
-
-    ## Return current value.
-    def get_value(self):
-        return self.val
-
-    ## Return current value.
-    #  @param val New value for the parameter.
-    def set_value(self, val):
-        self.val = val
-
-    ## Update the parameter to the next value.
-    #  @return True if successfully updated, False if the next value is invalid.
-    def next_value(self):
-        if self.val + self.step_size <= self.end:
-            self.val += self.step_size
-            return True
+        s = 'name: ' + str(self.name) + ', type: ' + self.type
+        if self.type == 'float' or self.type == 'int':
+            s += ', start: ' + str(self.start) \
+            + ', end: ' + str(self.end) \
+            + ', step size: ' + str(self.step_size)
         else:
-            return False
+            s += ', values: ' + str(self.values) \
+
+        return s
+
 
     ## The generator for all possible values.
     #  @return The generator for all possible values.
-    def values(self):
-        yield self.val
-        while self.next_value() == True:
-            yield self.val
+    def get_values(self):
+        if self.type == 'float':
+            import numpy as np
+            for val in np.arange(
+                    self.start,
+                    self.end + self.step_size,
+                    self.step_size
+                    ):
+                yield val.astype(float)
 
+        elif self.type == 'int':
+            for val in range(
+                    self.start,
+                    self.end + self.step_size,
+                    self.step_size
+                    ):
+                yield val
 
-    ## Reset the parameter to the starting value.
-    def reset_value(self):
-        self.val = self.start
+        else:
+            for val in self.values:
+                yield val
+
+    ## Calculate the number of possible choices.
+    def get_n_choices(self):
+        if self.type == 'collection':
+            return len(self.values)
+        else:
+            return (self.end - self.start) / self.step_size + 1
+
