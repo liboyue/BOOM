@@ -2,7 +2,8 @@ pipeline:
     name: bioasq_pipeline
     rabbitmq_host: 127.0.0.1
     clean_up: false
-    use_mongodb: false
+    use_mongodb: true
+    #use_mongodb: false
     mongodb_host: 127.0.0.1
 
 modules:

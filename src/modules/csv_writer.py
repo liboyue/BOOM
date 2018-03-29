@@ -1,5 +1,6 @@
 import glog as log
 import csv
+import os
 from .module import Module
 
 class CSVWriter(Module):
@@ -22,8 +23,12 @@ class CSVWriter(Module):
     #  @param data The data to be saved.
     #  @return the path to data.
     def save_job_data(self, job, data):
-        path = job.output_base + self.output_file
+        path = job.output_base + '/' + self.output_file
         log.info('Save csv to ' + path)
+
+        if not os.path.exists(job.output_base):
+            os.mkdir(job.output_base)
+
         with open(path, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['configuration'] + self.header)

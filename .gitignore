@@ -2,3 +2,5 @@
 *build*
 [0-9]*
 docs
+*.json
+data

@@ -4,10 +4,11 @@ import glog as log
 import os
 import time
 import pika
-from .job import Job
-from .parameter import Parameter
 import pydotplus
 import numpy as np
+
+from .job import Job
+from .parameter import Parameter
 
 class Pipeline:
     "The pipeline class creates the pipeline, and manages execution."
@@ -38,8 +39,9 @@ class Pipeline:
         ## Use MongoDB or not.
         self.use_mongodb = self.conf['pipeline']['use_mongodb'] if 'use_mongodb' in self.conf['pipeline'] else False
 
-        ## MongoDB's host.
-        self.mongodb_host = self.conf['pipeline']['mongodb_host'] if 'mongodb_host' in self.conf['pipeline'] else None
+        if self.use_mongodb:
+            ## MongoDB's host.
+            self.mongodb_host = self.conf['pipeline']['mongodb_host']
 
         ## The configuration of each module.
         self.modules = {mod_conf['name']: mod_conf for mod_conf in self.conf['modules']}
@@ -84,8 +86,11 @@ class Pipeline:
 
         self.channel.queue_bind(exchange='job', queue=self.callback_queue)
 
-        ## The directory to save results.
-        self.output_base = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime()) + '/'
+
+        ## The name of dir or database to save results.
+        self.output_base = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
+
+        # Create data dir
         os.mkdir(self.output_base)
 
 
@@ -159,12 +164,20 @@ class Pipeline:
     def expand_params(self, mod_conf, i = 0):
         if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
-                for val in np.arange(
-                        mod_conf['params'][i]['start'],
-                        mod_conf['params'][i]['end'] + mod_conf['params'][i]['step_size'],
-                        mod_conf['params'][i]['step_size']
-                        ):
-                    yield {**{mod_conf['params'][i]['name']: val.astype(float)}, **tmp}
+                if type(mod_conf['params'][i]['start']) == float or type(mod_conf['params'][i]['end']) == float or type(mod_conf['params'][i]['step_size']) == float:
+                    for val in np.arange(
+                            mod_conf['params'][i]['start'],
+                            mod_conf['params'][i]['end'] + mod_conf['params'][i]['step_size'],
+                            mod_conf['params'][i]['step_size']
+                            ):
+                        yield {**{mod_conf['params'][i]['name']: val.astype(float)}, **tmp}
+                else:
+                    for val in range(
+                            mod_conf['params'][i]['start'],
+                            mod_conf['params'][i]['end'] + mod_conf['params'][i]['step_size'],
+                            mod_conf['params'][i]['step_size']
+                            ):
+                        yield {**{mod_conf['params'][i]['name']: val}, **tmp}
         else:
             yield {}
 
@@ -217,7 +230,17 @@ class Pipeline:
 
                 if self.clean_up:
                     log.warn('Cleaning up intermediate files')
-                    os.system('rm ' + self.output_base + '*.json')
+                    if self.use_mongodb:
+                        from pymongo import MongoClient
+                        import gridfs
+                        fs = gridfs.GridFS(
+                                MongoClient(self.mongodb_host).boom
+                                )
+                        for grid_out in fs.find({"metadata": self.output_base}, no_cursor_timeout=True):
+                            fs.delete(grid_out._id)
+
+                    else:
+                        os.system('rm ' + self.output_base + '/*.json')
 
                 quit()
 

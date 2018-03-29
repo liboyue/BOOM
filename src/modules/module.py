@@ -3,6 +3,8 @@ import pika
 import glog as log
 from ..job import Job
 import yaml
+from pymongo import MongoClient
+import gridfs
 
 from ast import literal_eval
 
@@ -19,6 +21,13 @@ class Module():
 
         ## The module's input file path. None if not exists.
         self.use_mongodb = pipeline_conf['use_mongodb'] if 'use_mongodb' in pipeline_conf else False
+        if self.use_mongodb:
+            ## MongoDB's host.
+            self.mongodb_host = pipeline_conf['mongodb_host']
+            ## The gridfs object used by the pipeline.
+            self.fs = gridfs.GridFS(
+                    MongoClient(self.mongodb_host).boom
+                    )
 
         ## The module's input file path. None if not exists.
         self.input_file = module_conf['input_file'] if 'input_file' in module_conf else None
@@ -112,10 +121,18 @@ class Module():
     #  @param job The job object to load.
     #  @return The data loaded.
     def load_job_data(self, job):
-        if self.use_mongodb == False:
-            log.info('Load data from ' + job.input_uri)
-            with open(job.input_uri) as f:
-                return json.load(f)
+        if self.use_mongodb == False or job.output_path == "":
+            path = job.output_base + '/' + job.output_path if job.output_path != "" else job.input_uri
+            log.info('Load data from file ' + path)
+            with open(path) as f:
+                return self.parse_data(f.read())
+        else:
+            log.info('Load data from MongoDB ' + job.output_path)
+            data = self.fs.find_one({"filename": job.output_path, "metadata": job.output_base}, no_cursor_timeout=True) \
+                    .read() \
+                    .decode("utf-8")
+            return self.parse_data(data)
+
 
 
     ## Save Job and data to file or MongoDB.
@@ -124,11 +141,32 @@ class Module():
     #  @return the path to data.
     def save_job_data(self, job, data):
         if self.use_mongodb == False:
-            path = job.output_base + job.output_path + '.json'
-            log.info('Save data to ' + path)
+            path = job.output_base + '/' + job.output_path
+            log.info('Save data to file ' + path)
             with open(path, 'w') as f:
-                json.dump(data, f)
-            return path
+                f.write(self.dump_data(data))
+        else:
+            log.info('Save data to MongoDB ' + job.output_path)
+            self.fs.put(
+                    str.encode(self.dump_data(data)),
+                    filename = job.output_path,
+                    metadata = job.output_base
+                    )
+        return job.output_path
+
+
+    ## Parse the loaded data
+    #  @param data The data to be parsed.
+    #  @return the parsed data.
+    def parse_data(self, data):
+        return json.loads(data)
+
+
+    ## Dump the data to string
+    #  @param data The data to be dumped.
+    #  @return the dumped data.
+    def dump_data(self, data):
+        return json.dumps(data)
 
 
     ## The function to run the algorithm and process data objects.

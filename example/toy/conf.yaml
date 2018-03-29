@@ -1,8 +1,10 @@
 pipeline:
     name: toy_pipeline
     rabbitmq_host: 127.0.0.1
-    clean_up: false
-    use_mongodb: false
+    #clean_up: false
+    clean_up: true
+    #use_mongodb: false
+    use_mongodb: true
     mongodb_host: 127.0.0.1
 
 modules:
