@@ -7,6 +7,7 @@ import pika
 from .job import Job
 from .parameter import Parameter
 import pydotplus
+import numpy as np
 
 class Pipeline:
     "The pipeline class creates the pipeline, and manages execution."
@@ -158,12 +159,12 @@ class Pipeline:
     def expand_params(self, mod_conf, i = 0):
         if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
-                for val in range(
+                for val in np.arange(
                         mod_conf['params'][i]['start'],
                         mod_conf['params'][i]['end'] + mod_conf['params'][i]['step_size'],
                         mod_conf['params'][i]['step_size']
                         ):
-                    yield {**{mod_conf['params'][i]['name']: val}, **tmp}
+                    yield {**{mod_conf['params'][i]['name']: val.astype(float)}, **tmp}
         else:
             yield {}
 
