@@ -12,42 +12,42 @@ modules:
         input_file: train_50.json
         output_module: orderer
         instances: 1
+        processes: 4
         params:
             -   name: alpha
+                type: int
                 start: 50
                 end: 60
                 step_size: 10
 
     -   name: orderer
         type: Orderer
-        input_module: ranker
         output_module: tiler
         instances: 1
         params:
             -   name: k
+                type: int
                 start: 2
                 end: 4
                 step_size: 2
 
     -   name: tiler
         type: Tiler
-        input_module: orderer
         output_module: rouge
         instances: 1
         params:
             -   name: word_limit
+                type: int
                 start: 50
                 end: 200
                 step_size: 25
 
     -   name: rouge
         type: Rouge
-        input_module: tiler
         output_module: csv
         instances: 1
 
     -   name: csv
         type: CSVWriter
-        input_module: rouge
         output_file: results.csv
         instances: 1

@@ -1,3 +1,3 @@
 #!/bin/bash
-rabbitmq rabbitmqctl stop
+rabbitmqctl stop
 killall mongod
