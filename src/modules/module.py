@@ -111,11 +111,16 @@ class Module():
 
                 if cmd['command'] == 'shutdown':
                     self.channel.stop_consuming()
+                    self.cleanup()
 
 
     ## Get the name of the mdoule.
     def get_name(self):
         return self.name
+
+    ## Clean up before exiting.
+    def cleanup(self):
+        pass
 
     ## Load Job from path or MongoDB.
     #  @param job The job object to load.
