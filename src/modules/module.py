@@ -47,15 +47,25 @@ class Module():
         ## The exchange the pipeline uses.
         self.exchange = ''
 
-        ## The connection the module instance uses.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
+        # Connect to RabbitMQ
+        self.connect()
 
-        ## The channel the module instance uses.
-        self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=self.name)
-        self.channel.basic_qos(prefetch_count=1)
         self.channel.basic_consume(self.receive_job, queue=self.name)
 
+    def connect(self):
+            ## The connection the module instance uses.
+            self.connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(
+                        host=self.rabbitmq_host,
+                        heartbeat_interval=65535,
+                        blocked_connection_timeout=65535
+                        )
+                    )
+
+            ## The channel the module instance uses.
+            self.channel = self.connection.channel()
+            self.channel.queue_declare(queue=self.name)
+            self.channel.basic_qos(prefetch_count=1)
 
     def __str__(self):
         return json.dumps({
@@ -70,6 +80,7 @@ class Module():
         # Parse request body.
         data = json.loads(body.decode('ascii'))
         if data['type'] == 'job':
+            ch.basic_ack(delivery_tag = method.delivery_tag)
             job = Job.from_json(data['body'])
             log.info(self.name + ' received job: ' + str(job.id))
             log.debug(job)
@@ -99,7 +110,6 @@ class Module():
                     body = job.to_json()
                     )
 
-            ch.basic_ack(delivery_tag = method.delivery_tag)
             log.info(self.name + ' sent back job: ' + str(job.id))
             log.debug(job)
 
