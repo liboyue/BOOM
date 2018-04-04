@@ -12,10 +12,10 @@ class Orderer(Module):
 
         log.debug(job.input_uri)
         result = []
-        for question in data:
+        for question, ideal_answer in data:
             try:
                 ordered = self.orderer.orderSentences(question, job.params['k'])
-                result.append(ordered)
+                result.append((ordered, ideal_answer))
             except:
                 pass
         log.debug(result)

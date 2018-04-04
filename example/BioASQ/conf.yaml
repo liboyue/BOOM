@@ -13,6 +13,7 @@ modules:
         instances: 1
         params:
             -   name: alpha
+                type: int
                 start: 50
                 end: 60
                 step_size: 10
@@ -24,6 +25,7 @@ modules:
         instances: 3
         params:
             -   name: k
+                type: int
                 start: 2
                 end: 4
                 step_size: 2
@@ -35,6 +37,7 @@ modules:
         instances: 1
         params:
             -   name: word_limit
+                type: int
                 start: 50
                 end: 200
                 step_size: 25

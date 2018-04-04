@@ -14,8 +14,8 @@ class Rouge(Module):
         all_scores = []
         f_scores = []
 
-        for question in data:
-            score = self.evaluator.get_scores(question[0], question[1])[0]['rouge-1']
+        for result in data:
+            score = self.evaluator.get_scores(data[result][0], data[result][1])[0]['rouge-1']
             all_scores.append(score)
             f_scores.append(score['f'])
 

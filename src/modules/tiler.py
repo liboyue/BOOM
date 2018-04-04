@@ -13,9 +13,9 @@ class Tiler(Module):
         log.debug(job.input_uri)
 
         result = {}
-        for i, question in enumerate(data):
+        for i, (question, ideal_answer) in enumerate(data):
             key = "result_" + str(i)
-            result[key] = self.concatenator.tileSentences(question, job.params['word_limit'])
+            result[key] = (self.concatenator.tileSentences(question, job.params['word_limit']), ideal_answer)
         log.debug(result)
 
         return result
