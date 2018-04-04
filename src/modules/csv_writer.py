@@ -14,7 +14,7 @@ class CSVWriter(Module):
         # Create header when first called.
         if self.header == []:
             self.header = [k for k in data]
-            log.info("The header is " + str(self.header))
+            #log.info("The header is " + str(self.header))
         self.content.append([job.output_path] + [data[k] for k in self.header])
         return data
 

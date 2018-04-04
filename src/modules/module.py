@@ -83,7 +83,7 @@ class Module():
             ch.basic_ack(delivery_tag = method.delivery_tag)
             job = Job.from_json(data['body'])
             log.info(self.name + ' received job: ' + str(job.id))
-            log.debug(job)
+            #log.debug(job)
 
             # Load data.
             data = self.load_job_data(job)
@@ -111,7 +111,7 @@ class Module():
                     )
 
             log.info(self.name + ' sent back job: ' + str(job.id))
-            log.debug(job)
+            #log.debug(job)
 
         elif data['type'] == 'command':
             cmd = json.loads(data['body'])

@@ -9,21 +9,21 @@ pipeline:
 modules:
     -   name: ranker
         type: CoreMMR
-        input_file: train_50.json
+        input_file: BioASQ-trainingDataset6b.json
         output_module: orderer
         instances: 1
-        processes: 4
+        processes: 6
         params:
             -   name: alpha
-                type: int
-                start: 50
-                end: 60
-                step_size: 10
+                type: float
+                start: 0
+                end: 1
+                step_size: 0.05
 
     -   name: orderer
         type: Orderer
         output_module: tiler
-        instances: 1
+        instances: 4
         params:
             -   name: k
                 type: int
@@ -34,7 +34,7 @@ modules:
     -   name: tiler
         type: Tiler
         output_module: rouge
-        instances: 1
+        instances: 6
         params:
             -   name: word_limit
                 type: int
@@ -45,7 +45,7 @@ modules:
     -   name: rouge
         type: Rouge
         output_module: csv
-        instances: 1
+        instances: 4
 
     -   name: csv
         type: CSVWriter

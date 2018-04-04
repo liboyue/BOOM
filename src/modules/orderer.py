@@ -10,7 +10,7 @@ class Orderer(Module):
 
     def process(self, job, data):
 
-        log.debug(job.input_uri)
+        #log.debug(job.input_uri)
         result = []
         for question, ideal_answer in data:
             try:
@@ -18,7 +18,7 @@ class Orderer(Module):
                 result.append((ordered, ideal_answer))
             except:
                 pass
-        log.debug(result)
+        #log.debug(result)
 
         return result
 

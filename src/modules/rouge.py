@@ -9,7 +9,7 @@ class Rouge(Module):
         self.evaluator = RougeLib()
 
     def process(self, job, data):
-        log.debug(data)
+        #log.debug(data)
 
         all_scores = []
         f_scores = []

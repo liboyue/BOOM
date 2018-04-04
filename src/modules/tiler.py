@@ -10,13 +10,13 @@ class Tiler(Module):
 
     def process(self, job, data):
 
-        log.debug(job.input_uri)
+        #log.debug(job.input_uri)
 
         result = {}
         for i, (question, ideal_answer) in enumerate(data):
             key = "result_" + str(i)
             result[key] = (self.concatenator.tileSentences(question, job.params['word_limit']), ideal_answer)
-        log.debug(result)
+        #log.debug(result)
 
         return result
 

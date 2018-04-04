@@ -12,7 +12,7 @@ def multi_process_helper(args):
         if 'snippets' in question:
             question['snippets'] = [s['text'] for s in question['snippets']]
             result.append((ranker.getRankedList(question, alpha, 0), question['ideal_answer'][0]))
-    log.debug(result)
+    #log.debug(result)
     return result
 
 class CoreMMR(Module):
@@ -32,7 +32,7 @@ class CoreMMR(Module):
         questions = data['questions']
         N = len(questions)
         step_size = int(N / self.processes)
-        slices = [(questions[i:i+step_size], job.params['alpha']/100) for i in range(0, N, step_size)]
+        slices = [(questions[i:i+step_size], job.params['alpha']) for i in range(0, N, step_size)]
         tmp = self.pool.map(multi_process_helper, slices)
 
         result = []

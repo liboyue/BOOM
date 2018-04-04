@@ -193,7 +193,7 @@ class Pipeline:
         else:
             # Job compeleted
             log.info('Job ' + str(job.id) + ' completed.')
-            log.debug(job)
+            #log.debug(job)
             ch.basic_ack(delivery_tag = method.delivery_tag)
 
             # When received the last job.
@@ -203,7 +203,7 @@ class Pipeline:
                 flag = True
                 while flag:
                     flag = False
-                    log.debug(self.job_status)
+                    #log.debug(self.job_status)
                     if len(self.job_status) > 0:
                             flag = True
                             time.sleep(1)
@@ -247,7 +247,7 @@ class Pipeline:
                 )
         self.job_status.add(job.id)
         log.info('Sent job ' + str(job.id) + ' to module ' + module_name)
-        log.debug(job)
+        #log.debug(job)
 
 
     ## Send one job to one module.
