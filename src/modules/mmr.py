@@ -13,7 +13,7 @@ def multi_process_helper(args):
             question['snippets'] = [s['text'] for s in question['snippets']]
             result.append((ranker.getRankedList(question, alpha, 0), question['ideal_answer'][0]))
     log.debug(result)
-    return(result)
+    return result
 
 class CoreMMR(Module):
 

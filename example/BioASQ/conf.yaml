@@ -8,9 +8,10 @@ pipeline:
 modules:
     -   name: ranker
         type: CoreMMR
-        input_file: BioASQ_task6bPhaseB_testset1.json
+        input_file: BioASQ-trainingDataset6b.json
         output_module: orderer
         instances: 1
+        processes: 4
         params:
             -   name: alpha
                 type: int
@@ -20,7 +21,6 @@ modules:
 
     -   name: orderer
         type: Orderer
-        input_module: ranker
         output_module: tiler
         instances: 3
         params:
@@ -32,7 +32,6 @@ modules:
 
     -   name: tiler
         type: Tiler
-        input_module: orderer
         output_module: csv
         instances: 1
         params:
@@ -44,6 +43,5 @@ modules:
 
     -   name: csv
         type: CSVWriter
-        input_module: tiler
         output_file: results.csv
         instances: 1
