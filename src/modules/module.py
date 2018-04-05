@@ -47,10 +47,11 @@ class Module():
         ## The exchange the pipeline uses.
         self.exchange = ''
 
-        # Connect to RabbitMQ
-        self.connect()
+        # Work around for the time out problem.
+        self.is_finished = False
 
-        self.channel.basic_consume(self.receive_job, queue=self.name)
+        # Connect
+        self.connect()
 
     def connect(self):
         ## The connection the module instance uses.
@@ -67,6 +68,9 @@ class Module():
         self.channel.queue_declare(queue=self.name)
         self.channel.basic_qos(prefetch_count=1)
 
+        # Connect to RabbitMQ
+        self.channel.basic_consume(self.receive_job, queue=self.name)
+
     def __str__(self):
         return json.dumps({
             'name': self.name,
@@ -81,6 +85,7 @@ class Module():
         data = json.loads(body.decode('ascii'))
         if data['type'] == 'job':
             ch.basic_ack(delivery_tag = method.delivery_tag)
+            self.channel.stop_consuming()
             job = Job.from_json(data['body'])
             log.info(self.name + ' received job: ' + str(job.id))
             #log.debug(job)
@@ -102,8 +107,10 @@ class Module():
             # Update timestampe and processing time.
             job.update_timestamp()
 
+            # Connect
+            self.connect()
             # Send back resulting job.
-            ch.basic_publish(
+            self.channel.basic_publish(
                     exchange = 'job',
                     routing_key = properties.reply_to,
                     properties = pika.BasicProperties(),
@@ -121,6 +128,7 @@ class Module():
 
                 if cmd['command'] == 'shutdown':
                     self.channel.stop_consuming()
+                    self.is_finished = True
                     self.cleanup()
 
 
@@ -197,7 +205,9 @@ class Module():
     ## The function to start the service.
     def run(self):
         log.info('Module ' + self.name + ' started, awaiting for requests.')
-        self.channel.start_consuming()
+
+        while self.is_finished == False:
+            self.channel.start_consuming()
 
 
 if __name__ == '__main__':
