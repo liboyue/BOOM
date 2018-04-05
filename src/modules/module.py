@@ -53,19 +53,19 @@ class Module():
         self.channel.basic_consume(self.receive_job, queue=self.name)
 
     def connect(self):
-            ## The connection the module instance uses.
-            self.connection = pika.BlockingConnection(
-                    pika.ConnectionParameters(
-                        host=self.rabbitmq_host,
-                        heartbeat_interval=65535,
-                        blocked_connection_timeout=65535
-                        )
+        ## The connection the module instance uses.
+        self.connection = pika.BlockingConnection(
+                pika.ConnectionParameters(
+                    host=self.rabbitmq_host,
+                    heartbeat_interval=0,
+                    blocked_connection_timeout=0
                     )
+                )
 
-            ## The channel the module instance uses.
-            self.channel = self.connection.channel()
-            self.channel.queue_declare(queue=self.name)
-            self.channel.basic_qos(prefetch_count=1)
+        ## The channel the module instance uses.
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=self.name)
+        self.channel.basic_qos(prefetch_count=1)
 
     def __str__(self):
         return json.dumps({
