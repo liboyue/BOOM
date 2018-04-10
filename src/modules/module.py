@@ -6,8 +6,6 @@ import yaml
 from pymongo import MongoClient
 import gridfs
 
-from ast import literal_eval
-
 class Module():
     """The base module class. Every actual module should be derived from this class."""
 

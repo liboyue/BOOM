@@ -112,7 +112,7 @@ class Pipeline:
 
     ## The function to plot the pipeline.
     def plot(self):
-        fig = pydotplus.Dot(graph_name=self.conf['pipeline']['name'],rankdir="LR", labelloc='b', labeljust='r', ranksep=1)
+        fig = pydotplus.Dot(graph_name=self.conf['pipeline']['name'], rankdir="LR", labelloc='b', labeljust='r', ranksep=1)
         fig.set_node_defaults(shape='square')
 
         modules = []
@@ -130,8 +130,11 @@ class Pipeline:
 
             label = ''
             if 'params' in module:
-                for params in module['params']:
-                    label += 'param ' + params['name'] + ' range: [' + str(params['start']) + ', ' + str(params['step_size']) + ', ' + str(params['end']) + ']\n' 
+                for param in module['params']:
+                    if param['type'] == 'collection':
+                        label += 'param ' + param['name'] + ' values: [' + ','.join(param['values']) + ']\n'
+                    else:
+                        label += 'param ' + param['name'] + ' range: [' + str(param['start']) + ', ' + str(param['step_size']) + ', ' + str(param['end']) + ']\n' 
 
             modules.append(
                 pydotplus.Node(

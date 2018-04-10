@@ -44,7 +44,7 @@ if __name__ == '__main__':
     for module in conf['modules']:
         module['params'] = None
         for i in range(int(module['instances'])):
-            code = "import sys\nimport gflags\nfrom src.modules import " + module['type'] + "\n" \
+            code = "import sys\nimport gflags\nfrom src.modules import *\nfrom extra_modules import *\n" \
                 + "FLAGS = gflags.FLAGS\nFLAGS(sys.argv)\n" \
                 + module['type'] + "(" \
                 + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " \
