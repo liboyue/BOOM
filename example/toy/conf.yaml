@@ -28,7 +28,7 @@ modules:
     -   name: module_2
         type: Sample
         output_module: module_3
-        instances: 2
+        instances: 1
         params:
             -   name: p
                 type: float
@@ -39,7 +39,7 @@ modules:
     -   name: module_3
         type: Sample
         output_module: module_4
-        instances: 4
+        instances: 1
 
     -   name: module_4
         type: CSVWriter
