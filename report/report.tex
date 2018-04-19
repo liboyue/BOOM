@@ -30,11 +30,12 @@ create complex pipelines and tune parameters automatically.
 
     \subsection{Automatical parameter tuning}
     The framework should be able to automatically tune some parameters that have been exposed to the system by the pipeline developers.
-    \subsection{Load balancing}
-    The framework should be able to handle load balancing since different modules require different excution time.
 
     \subsection{Easy to develop users' modules}
     The framwork should support a easy way for users to develop their own modules.
+
+    \subsection{Load balancing}
+    The framework should be able to handle load balancing since different modules require different excution time.
 
 \section{Design}
 
@@ -95,6 +96,7 @@ create complex pipelines and tune parameters automatically.
     \subsection{Pipeline}
     The pipeline class manages modules and parameters.
     It reads configuration file, creates the pipeline and controls load balancing when running.
+    The pipeline can't have branches or merges, and the order of the configuration file should be the same with the actual pipeline.
 
     \begin{figure}[h]
         \begin{center}
@@ -111,16 +113,15 @@ create complex pipelines and tune parameters automatically.
     A module needs to maintain the following fileds:
     \begin{itemize}
         \item Name of the module.
-        \item Input module.
-        \item Output module.
-        \item Parameters.
         \item Number of instances.
         \item Configuration of the pipeline.
     \end{itemize}
+        
+    When running, the framework will send parameters module instances.
 
     \begin{figure}[H]
         \begin{center}
-            \includegraphics[width=\textwidth]{fig/module_uml.png}
+            \includegraphics[width=0.4\textwidth]{fig/module_uml.png}
         \end{center}
         \label{fig:module_uml}
         \caption{UML diagrams for the abstract module class and derived classes.}
@@ -130,15 +131,16 @@ create complex pipelines and tune parameters automatically.
     \label{sec:parameter}
     The parameter class manages one parameter.
     It should handle all operations related the parameter,
-    including updating the parameter value according to its step size,
+    including updating the parameter value,
     set and reset the value.
+    There are several types of params: integer, float and collection.
 
     It also needs to save maintain the following fileds:
     \begin{itemize}
         \item Name of the parameter.
-        \item Default values of the parameter.
-        \item Tuning interval of the parameter.
-        \item Step size of the parameter.
+        \item Type of the parameter: int, float or collection.
+        \item Interval of possible values or possible values of a collection.
+        \item Step size of the parameter (for numerical params).
     \end{itemize}
 
     \begin{figure}[H]
@@ -153,11 +155,14 @@ create complex pipelines and tune parameters automatically.
     \label{sec:infomation_object}
     The job class is the information object used to pass jobs between modules.
     It maintains the following fileds:
+
     \begin{itemize}
         \item Producing module: the module that produced this information object.
         \item Consuming module: the module that this information object to be passed to.
         \item Data path: the path to actual data file.
-        \item Configuration: the configuration that produced the data object.
+        \item Params: the params that the module should use to process the data object.
+        \item Timestample: the timestamp when the data object was created.
+        \item Processing time: the time taken to process the data object.
     \end{itemize}
 
 
@@ -170,43 +175,18 @@ create complex pipelines and tune parameters automatically.
     \end{figure}
 
 
-    \subsection{File format}
-    A data file has a description contains the following fileds:
-    \begin{itemize}
-        \item Data: the actual data.
-        \item Configuration: the configuration produced the file it.
-        \item Timestamp: the timestamp when it is created.
-        \item Producing module: the module that produced this file.
-    \end{itemize}
-
-
     \subsection{Configuration file}
     We use YAML files to configure the framework.
+
+    \subsection{User defined modules}
+    Users need to put their module classes in a file in the same folder with the configuration file.
 
     \subsection{Executable}
     We provide an executable that reads in the configuration file, and runs all possible configurations.
 
-\section{Implemented Modules}
-
-    Table \ref{tbl:modules} listed all modules and their parameters we implemented.
-
-    \begin{table}[h]
-        \centering
-        \begin{tabular}{|l|l|}
-            \hline
-            Module  & Parameters \\ \hline
-            CoreMMR &            \\ \hline
-            Orderer &            \\ \hline
-            Tiler   &            \\ \hline
-            Rouge   &            \\ \hline
-        \end{tabular}
-        \caption{Table of implemented modules.}
-        \label{tbl:modules}
-    \end{table}
 
 \section{Example pipeline}
-    \subsection{Toy example}
-    This pipeline consists of three sample modules,
+    This pipeline consists of a sample module,
     which do nothing but add it own configuration and parameters to the data to show this pipeline is working.
 
     \begin{figure}[H]
@@ -218,8 +198,13 @@ create complex pipelines and tune parameters automatically.
     \end{figure}
 
 
-    \subsection{BioAsq example}
-    This pipeline is a fully operational BioAsq pipeline.
+
+\section{Experiments}
+
+    \subsection{Dataset}
+    The results were run on a subset (100 total questions) of the bioasq\_train\_formatted.json dataset.
+
+    \subsection{Pipeline}
 
     \begin{figure}[H]
         \begin{center}
@@ -230,11 +215,26 @@ create complex pipelines and tune parameters automatically.
     \end{figure}
 
 
-\section{Experiments}
-    \subsection{Dataset}
-    The results were run on a subset (100 total questions) of the bioasq_train_formatted.json dataset.
+    \section{Implemented Modules}
+
+        Table \ref{tbl:modules} listed all modules and their parameters we implemented.
+
+        \begin{table}[h]
+            \centering
+            \begin{tabular}{|l|l|}
+                \hline
+                Module  & Parameters \\ \hline
+                CoreMMR & $\alpha$           \\ \hline
+                Orderer &  k          \\ \hline
+                Tiler   &  word\_limit          \\ \hline
+                Rouge   &            \\ \hline
+            \end{tabular}
+            \caption{Table of implemented modules.}
+            \label{tbl:modules}
+        \end{table}
+
     \subsection{Results}
-    Our experimental results show that the best configuration uses the following parameters: alpha=0.65, k=2, word_limit=100.
+    %Our experimental results show that the best configuration uses the following parameters: alpha=0.65, k=2, word limit=100.
 
 \section{Conclusion}
 
