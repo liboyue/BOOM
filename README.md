@@ -2,9 +2,9 @@
 An easy-to-use multi-process question answering pipeline framework.
 
 ## Features
-- Easy to use: you only need to write your configuration file, we will handle everything else!
-- Flexible: we (will) offer common modules for QA pipelines, and it is very easy to develop your own module.
-- Tuning parameters: automatically experiment on all possible parameter combinations and saves the results.
+- Easy to use: you only need to write your configuration file and modules, we will handle everything else!
+- Flexible: we (will) offer common modules for QA pipelines, and it is very easy to develop your own modules.
+- Parameter tuning: automatically experiment on all possible parameter combinations and saves the results.
 - High efficiency: we use multiple processes to run the whole pipeline.
 
 ## Installation
@@ -23,12 +23,14 @@ You can also specify the configuration file to use by adding option `-conf PATH_
 
 For more options, run `boom --help`.
 
-## Examples
+## Tutorial
+
+### Examples
 There are two examples for now.
-One is a toy pipeline showing how to use this framework, the other is an actual pipeline for BioASQ challenge.
+One is a toy pipeline showing how to use this framework, the other is an actual pipeline for the BioASQ challenge.
 
 ## Warning
-This framework is still under heavy developments,
+This framework is still under heavy development,
 please be careful.
 
 ## API documentation
