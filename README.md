@@ -24,8 +24,6 @@ You can also specify the configuration file to use by adding option `-conf PATH_
 For more options, run `boom --help`.
 
 ## Tutorial
-There are two examples for now.
-One is a toy pipeline showing how to use this framework, the other is an actual pipeline for the BioASQ challenge.
 
 ### BOOM Basics
 There are two main components to your BOOM pipeline: the modules and the configuration file. Each pipeline can have an arbitrary number of modules (n >= 1) but there is only one configuration file that defines the pipeline. BOOM works by instantiating each module and passing data along from one module to the next, allowing each to process and transform the data along the way.
@@ -40,8 +38,17 @@ The configuration file defines the structure and composition of the pipeline and
 ### Toy Example: Configuring a pipeline for simple data processing in BOOM
 This toy example will walk show you all that is necessary to get started in BOOM. You can explore all the code associated with this example under `/example/toy`.
 
+- TODO: create a module
+- TODO: create a configuration file
+- TODO: Access data within a module
+
 ### BioASQ Example: Exploring a Configuration Space and Adapting pre-existing modules
-This example will show you how to configure your pipeline to explore a parameter space and take advantage of modules you already have on hand.
+This example will show you how to configure your pipeline to explore a parameter space and take advantage of modules you already have on hand. You can explore all the code associated with this example under `/example/BioASQ`.
+
+- TODO: using pre-existing modules in a module
+- TODO: How to override clean up
+- TODO: How to define parameter space
+- TODO: How to access parameters in module
 
 ## Warning
 This framework is still under heavy development,
