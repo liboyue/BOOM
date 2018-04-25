@@ -34,7 +34,7 @@ The building block of a BOOM pipeline is the [Module class](https://bioasq.boyue
 #### Configuration Files
 The configuration file defines the structure and composition of the pipeline and allows the user to define a parameter space for the pipeline to be executed over. The configuration is written is a YAML file and contains two core components: `pipeline`, where pipeline metadata is declared, and `modules`, where the pipeline composition is defined.
 
-[!yaml_modules](/images/toy_yaml_pipeline.png)
+![YAML Pipeline Declaration](/images/toy_yaml_pipeline.png)
 
 Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
 
