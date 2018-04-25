@@ -46,12 +46,14 @@ Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
 
 `name` allows the user to declare a name for the pipeline. `rabbitmq_host` and `mongodb_host` are simply the host addresses for RabbitMQ and MongoDB, respectively. `clean_up` is a boolean value that will delete intermediate output files if declared `true`. `use_mongodb` is a boolean value that will write data to MongoDB instead of files if declared `true`.
 
+- TODO: explain modules section
+
 ### Toy Example: Configuring a pipeline for simple data processing in BOOM
 This toy example will walk show you all that is necessary to get started in BOOM. You can explore all the code associated with this example under `/example/toy`.
 
 The first step is to create a module for your pipeline to use.
 
-(IMAGE OF extra_modules.py HERE)
+![Toy extra_modules.py](/images/toy_extra_modules.png)
 
 In this toy example, we define a class `Sample` that is a subclass of `Module`. The `__init__()` method in this case simply passes all the parameters up to the parent class, but a more complicated module may also have additionally initialization requirements that would be met here.
 

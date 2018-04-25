@@ -9,7 +9,8 @@ class Sample(Module):
     def process(self, job, data):
 
         log.debug(job)
-        data['string_list'] = [x + ' processed by ' + self.name + ', params ' + str(job.params) for x in data['string_list']]
+        result = [x + ' processed by ' + self.name + ', params ' + str(job.params) for x in data['string_list']]
+        data['string_list'] = result
         log.debug(data)
 
         return data
