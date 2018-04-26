@@ -49,7 +49,7 @@ Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
 - TODO: explain modules section
 
 ### Toy Example: Configuring a pipeline for simple data processing in BOOM
-This toy example will walk show you all that is necessary to get started in BOOM. You can explore all the code associated with this example under `/example/toy`.
+This toy example will show you all that is necessary to get started in BOOM. You can explore all the code associated with this example under `/example/toy`.
 
 The first step is to create a module for your pipeline to use.
 
@@ -59,17 +59,36 @@ In this toy example, we define a class `Sample` that is a subclass of `Module`. 
 
 The only other requirement of our module is that it implement the process function which `return`s data for the next module to use. The pipeline for this module will consist of several `Sample` modules chained together, so this module will output data in the same format it reads it in.
 
-- TODO: create a module
-- TODO: Access data within a module
-- TODO: create a configuration file
+The data are made available to the module as an argument to the `process()` method. The parameters are available as a dictionary attribute of the job argument. The key is user-defined in the configuration file. This example will process each line in the dataset and append the phrase: "processed by [module name], params [parameter]".
+
+In order to make use of this module, a pipeline needs to be defined in a configuration file. The configuration file for this example is shown here. The modules section declares a list of three `Sample` modules, that we have already written. The first module gets its data from the `data.json` file and the rest get their input from the preceding modules. The first `Sample` module has two parameters, one a collection and one an integer. The second module has one floating point parameter, and the third module has no parameters at all. The final module is a standard CSVWriter module that will write the final output in CSV format, it does not take parameters.
+
+![Toy extra_modules.py](/images/toy_extra_modules.png)
+
+To run this example start in the top level directory and run `./start_services`. Then navigate to `/example/toy/` and run `boom`. When you are finished, navigate back to the top level directory and run `./stop_services`.
 
 ### BioASQ Example: Exploring a Configuration Space and Adapting pre-existing modules
 This example will show you how to configure your pipeline to explore a parameter space and take advantage of modules you already have on hand. You can explore all the code associated with this example under `/example/BioASQ`.
 
-- TODO: using pre-existing modules in a module
+The BioASQ example was adapted from a pre-existing codebase. If your system is already modularized it is extremely easy to implement it as a BOOM pipeline as shown by this example module:
+
+(IMAGE OF ANY BioASQ MODULE HERE)
+
+Just make sure the parameters are taken as function arguments to the function called to do the processing and BOOM will handle generating the parameter combinations necessary for exploring the parameter space.
+
 - TODO: How to override clean up
 - TODO: How to define parameter space
 - TODO: How to access parameters in module
+
+Because most of the processing occurs in the `Ranker` module, we have additional code to parallelize the processing. This requires us to override the `cleanup()` function of the `Module` class so the process pool gets closed.
+
+(IMAGE OF RANKER CODE HERE)
+
+The configuration file for this pipeline is similar to the one in toy module. In this case, each module is an instantiation of a different user-defined module type. Additionally, we create extra instances of the modules to take advantage of parallel processing. Each module has its own parameters associated with it and we can easily define the parameter space we want to execute over.
+
+(IMAGE OF CONFIG FILE HERE)
+
+To run this example start in the top level directory and run `./start_services`. Then navigate to `/example/BioASQ/` and run `boom`. When you are finished, navigate back to the top level directory and run `./stop_services`.
 
 ## Warning
 This framework is still under heavy development,
