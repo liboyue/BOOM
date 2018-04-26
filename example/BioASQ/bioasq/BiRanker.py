@@ -5,18 +5,12 @@ from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-#import logging
-#from logging import config
-
 '''
 @Author: Khyathi Raghavi Chandu
 @Date: October 17 2017
 
 This code contains the abstract class for the BiRanker.
 '''
-
-#logging.config.fileConfig('logging.ini')
-#logger = logging.getLogger('bioAsqLogger')
 
 '''
 This is an Abstract class that serves as a template for implementations for:
@@ -57,12 +51,10 @@ class BiRanker:
 		for snippet in snippets:
 			snippet = snippet
 			more_sentences = [i.lstrip().rstrip() for i in sent_tokenize(snippet)]
-			#print more_sentences
-			#rint more_sentences
-			#w_input()
+
 			for sentence in more_sentences:
 				if sentence not in pos_dict:
 				  pos_dict[sentence] = 1-(float(rank)/max_rank)
 			rank += 1
-		#logger.info('Computed position dictionary for Bi Ranking')
+
 		return pos_dict
