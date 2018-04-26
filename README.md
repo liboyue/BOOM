@@ -46,7 +46,9 @@ Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
 
 `name` allows the user to declare a name for the pipeline. `rabbitmq_host` and `mongodb_host` are simply the host addresses for RabbitMQ and MongoDB, respectively. `clean_up` is a boolean value that will delete intermediate output files if declared `true`. `use_mongodb` is a boolean value that will write data to MongoDB instead of files if declared `true`.
 
-- TODO: explain modules section
+![Toy conf.yaml](/images/toy_conf.png)
+
+The `modules` section of the configuration file should contain a list of modules. Each module consists of a set of key-value pairs which  must include `name`, `type`, `input_file` (first module only), `output_module` (or `output_file` for the last module), `instances`, and (optionally) `params`. `params` is a list of parameters, defined by a `name`, `type` (float, int, or collection). If the parameter is a float or int, the param should also contain `start`, `end`, and `step_size`. If the parameter is of type collection, then it should contain a `values` list.
 
 ### Toy Example: Configuring a pipeline for simple data processing in BOOM
 This toy example will show you all that is necessary to get started in BOOM. You can explore all the code associated with this example under `/example/toy`.
