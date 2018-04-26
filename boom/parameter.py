@@ -15,7 +15,6 @@ class Parameter:
             self.end = conf['end']
             ## Step size for each update.
             self.step_size = conf['step_size']
-        print(self.__str__())
 
     def __str__(self):
         s = 'name: ' + str(self.name) + ', type: ' + self.type

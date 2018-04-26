@@ -1,5 +1,5 @@
 """
-Core code of the pipeline framework.
+BOOM: An easy-to-use question answering pipeline framework.
 """
 
 __all__ = ['modules', 'Pipeline', 'Parameter', 'Job']

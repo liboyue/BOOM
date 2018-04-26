@@ -86,7 +86,6 @@ class Module():
             self.channel.stop_consuming()
             job = Job.from_json(data['body'])
             log.info(self.name + ' received job: ' + str(job.id))
-            #log.debug(job)
 
             # Load data.
             data = self.load_job_data(job)
@@ -116,7 +115,6 @@ class Module():
                     )
 
             log.info(self.name + ' sent back job: ' + str(job.id))
-            #log.debug(job)
 
         elif data['type'] == 'command':
             cmd = json.loads(data['body'])

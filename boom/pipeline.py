@@ -250,7 +250,6 @@ class Pipeline:
                 )
         self.job_status.add(job.id)
         log.info('Sent job ' + str(job.id) + ' to module ' + module_name)
-        #log.debug(job)
 
 
     ## Send one job to one module.
@@ -289,6 +288,11 @@ class Pipeline:
 
         # Start running
         self.channel.start_consuming()
+
+    ## The function to get the output directory of the pipeline.
+    #  @return the path of the output directory
+    def get_output_dir(self):
+        return self.output_base
 
 if __name__ == '__main__':
     pass
