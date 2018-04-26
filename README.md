@@ -91,4 +91,4 @@ This framework is still under heavy development,
 please be careful.
 
 ## API documentation
-You can find the API documentation [here](https://bioasq.boyue.li).
+You can find the API documentation [here](https://boom.boyue.li).

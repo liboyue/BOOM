@@ -7,10 +7,14 @@ all:
 
 install:
 	pip install -r requirements.txt
-	python setup.py install
+	python setup.py sdist
+	pip install dist/boom-0.1.tar.gz
 
 test:
-	py.test --verbose --color=yes tests
+	py.test -v --color=yes tests
 
 doc:
 	doxygen Doxyfile
+
+uninstall:
+	pip uninstall boom -y

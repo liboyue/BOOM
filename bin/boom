@@ -4,7 +4,7 @@ import yaml
 import glog as log
 import gflags
 import sys
-import src
+import boom
 import json 
 import asyncio
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # Print info
     if (FLAGS.info):
-        from src import Pipeline
+        from boom import Pipeline
         n_jobs = Pipeline.calculate_total_jobs(None, conf)
         n_modules = len(conf['modules'])
         print('There are ' + str(n_modules) + ' modules in pipeline ' + conf['pipeline']['name'] + ', ' + str(n_jobs) + ' jobs in total.')
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     for module in conf['modules']:
         module['params'] = None
         for i in range(int(module['instances'])):
-            code = "import sys\nimport gflags\nfrom src.modules import *\nfrom extra_modules import *\n" \
+            code = "import sys\nimport gflags\nfrom boom.modules import *\nfrom extra_modules import *\n" \
                 + "FLAGS = gflags.FLAGS\nFLAGS(sys.argv)\n" \
                 + module['type'] + "(" \
                 + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " \
@@ -65,9 +65,9 @@ if __name__ == '__main__':
 
     # Generate command for pipeline
     if FLAGS.plot:
-        cmd = "python -c \"import sys\nimport gflags\nimport src\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=src.Pipeline('" + FLAGS.conf + "')\np.plot()\np.run()\" -verbosity=" + FLAGS.verbosity
+        cmd = "python -c \"import sys\nimport gflags\nimport boom\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=boom.Pipeline('" + FLAGS.conf + "')\np.plot()\np.run()\" -verbosity=" + FLAGS.verbosity
     else:
-        cmd = "python -c \"import sys\nimport gflags\nimport src\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=src.Pipeline('" + FLAGS.conf + "')\np.run()\" -verbosity=" + FLAGS.verbosity
+        cmd = "python -c \"import sys\nimport gflags\nimport boom\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=boom.Pipeline('" + FLAGS.conf + "')\np.run()\" -verbosity=" + FLAGS.verbosity
     log.debug(cmd)
     l.append(asyncio.create_subprocess_shell(cmd))
 

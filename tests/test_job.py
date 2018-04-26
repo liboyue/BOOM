@@ -1,10 +1,11 @@
-from src import Job
+from boom import Job
 import json
 
 json_str = json.dumps({
     'id': 0,
-    'data_uri': 'uri',
-    'save_uri': 'save_uri',
+    'input_uri': 'uri',
+    'output_base': 'output_base',
+    'output_path': 'output_path',
     'params': None,
     'timestamp': str(None),
     'producer': 'producer',
@@ -13,7 +14,7 @@ json_str = json.dumps({
     })
 
 def test_init():
-    job = Job(1, 'uri', 'save_uri')
+    job = Job(1, 'uri', 'output_base', 'output_path')
 
 def test_from_json():
     job = Job.from_json(json_str)
@@ -21,12 +22,13 @@ def test_from_json():
     assert str(job) == json_str
 
 def test_to_json():
-    job = Job(0, 'uri', 'save_uri')
+    job = Job(0, 'uri', 'output_base', 'output_path')
     job.timestamp = None
     assert str(job) == json.dumps({
         'id': 0,
-        'data_uri': 'uri',
-        'save_uri': 'save_uri',
+        'input_uri': 'uri',
+        'output_base': 'output_base',
+        'output_path': 'output_path',
         'params': None,
         'timestamp': str(None),
         'producer': None,

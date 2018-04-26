@@ -1,11 +1,17 @@
 from distutils.core import setup
 
-setup(name='src',
-      version='0.0.0',
-      scripts=['bin/boom'],
-      description='An easy-to-use question answering pipeline framework.',
-      author='Boyue & Nico',
-      author_email='boyuel@andrew.cmu.edu',
-      url='https://www.python.org/sigs/distutils-sig/',
-      packages=['src', 'src.modules']
+setup(
+        name = 'boom',
+        version = '0.1',
+        description = 'An easy-to-use configuration space exploration pipeline framework.',
+        author = 'Boyue Li, Nicholas Gekakis',
+        author_email = 'me@boyue.li, ngekakis@andrew.cmu.edu',
+        license = 'MIT',
+        url = 'https://https://github.com/liboyue/BOOM/',
+        #project_urls={
+        #    'Documentation': 'https://boom.boyue.li/',
+        #    'Source Code': 'https://https://github.com/liboyue/BOOM/',
+        #},
+        scripts = ['bin/boom'],
+        packages = ['boom', 'boom.modules']
      )

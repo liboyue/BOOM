@@ -1,0 +1,37 @@
+pipeline:
+    name: test_pipeline
+    rabbitmq_host: 127.0.0.1
+    clean_up: false
+    use_mongodb: false
+    mongodb_host: 127.0.0.1
+
+modules:
+    -   name: module_1
+        type: Sample
+        input_file: data.json
+        output_module: module_2
+        instances: 1
+        params:
+            -   name: p1
+                type: collection
+                values:
+                    - val1
+                    - val2
+                    - val3
+
+            -   name: p2
+                type: int
+                start: 0
+                end: 20
+                step_size: 20
+
+            -   name: p3
+                type: float
+                start: 0.0
+                end: 80.0
+                step_size: 40.0
+
+    -   name: module_4
+        type: CSVWriter
+        output_file: results.csv 
+        instances: 1
