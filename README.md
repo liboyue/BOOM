@@ -76,10 +76,6 @@ The BioASQ example was adapted from a pre-existing codebase. If your system is a
 
 Just make sure the parameters are taken as function arguments to the function called to do the processing and BOOM will handle generating the parameter combinations necessary for exploring the parameter space.
 
-- TODO: How to override clean up
-- TODO: How to define parameter space
-- TODO: How to access parameters in module
-
 Because most of the processing occurs in the `Ranker` module, we have additional code to parallelize the processing. This requires us to override the `cleanup()` function of the `Module` class so the process pool gets closed.
 
 (IMAGE OF RANKER CODE HERE)
