@@ -16,9 +16,10 @@
 
 \section{Overview}
 
-In this project, we are building a distributed question answering pipeline framework,
-which allows users to easily configure multiple modules,
-create complex pipelines and tune parameters automatically.
+In this project, we built a distributed parallel configuration space exploration pipeline framework,
+which can exhaustively try all possible parameter combinations automatically.
+Users can easily configure multiple modules,
+create their own modules and run on multiple processes or even multiple machines.
 
 \section{Requirements}
 
@@ -26,10 +27,10 @@ create complex pipelines and tune parameters automatically.
     The framework should be easy to configure and deploy.
 
     \subsection{Save and resume}
-    The framework should be save intermediate results so that it can be interrupted resume running at a later time.
+    The framework should be able to save intermediate results so that it can be interrupted and resume running at a later time.
 
-    \subsection{Automatical parameter tuning}
-    The framework should be able to automatically tune some parameters that have been exposed to the system by the pipeline developers.
+    \subsection{Automatical parameter exploring}
+    The framework should be able to automatically execute using all possible parameter combinations that have been configured by the pipeline developers.
 
     \subsection{Easy to develop users' modules}
     The framwork should support a easy way for users to develop their own modules.
@@ -43,11 +44,9 @@ create complex pipelines and tune parameters automatically.
 
     As shown in Fig. \ref{fig:control_flow},
     a pipeline is constructed from several independent modules.
-    A module reads data from data server,
+    A module reads data from the data server,
     processes data according to all possible parameters,
     then save results for each configuration to the data server.
-
-    The number of instances of each module is managed by the load balancing server.
 
     \begin{figure}[h]
         \begin{center}
@@ -66,19 +65,15 @@ create complex pipelines and tune parameters automatically.
     \end{figure}
 
 
-    Every module runs on an independent process,
-    and communicates through RabbitMQ using data objects which contains parameters, current excuetion status and the path to input file.
+    Every module runs on an independent process
+    and communicates through RabbitMQ using the job class (defined in section \ref{sec:job}) which contains parameters, current excuetion status and the path to input file.
     Fig. \ref{fig:information_flow} describes the information flow.
     Load balancing server distributes jobs to different modules' instances.
     Once the job is finished, the instance send a confirmation to the load balancing server.
 
 
-    Users only need to specify
-    \begin{enumerate}
-        \item The connections between modules
-        \item The parameters every module needs
-    \end{enumerate}
-    The framework will automatically handle execution, load balancing and parameter tuning.
+    Users only need to specify the connections between modules and the parameters every module needs,
+    the framework will automatically handle execution and configuration space exploration.
 
     \begin{figure}[H]
         \begin{center}
@@ -90,12 +85,12 @@ create complex pipelines and tune parameters automatically.
     Figure \ref{fig:sample_pipeline} shows a sample pipeline which passes the input information object
     through some modules and produces the output information object.
 
-    We also provide an command line executable, to ease users' pain of coding.
+    We also provided a command line executable, to ease users' pain of coding.
 
 
     \subsection{Pipeline}
     The pipeline class manages modules and parameters.
-    It reads configuration file, creates the pipeline and controls load balancing when running.
+    It reads configuration file, creates the pipeline and is the actual class for the load balancing server.
     The pipeline can't have branches or merges, and the order of the configuration file should be the same with the actual pipeline.
 
     \begin{figure}[h]
@@ -108,16 +103,16 @@ create complex pipelines and tune parameters automatically.
 
     \subsection{Module}
     A module is the basic computation unit which takes an input and produces an output.
-    Every input and output is an information object defined in sec. \ref{sec:infomation_object}.
+    Every input and output is an job object defined in sec. \ref{sec:job}.
 
-    A module needs to maintain the following fileds:
+    A module needs to maintain the following fields:
     \begin{itemize}
         \item Name of the module.
         \item Number of instances.
         \item Configuration of the pipeline.
     \end{itemize}
         
-    When running, the framework will send parameters module instances.
+    When running, the pipeline will send jobs to module instances.
 
     \begin{figure}[H]
         \begin{center}
@@ -152,14 +147,16 @@ create complex pipelines and tune parameters automatically.
     \end{figure}
 
     \subsection{Job}
-    \label{sec:infomation_object}
-    The job class is the information object used to pass jobs between modules.
+    \label{sec:job}
+    The job class is the information object used between modules.
     It maintains the following fileds:
 
     \begin{itemize}
-        \item Producing module: the module that produced this information object.
-        \item Consuming module: the module that this information object to be passed to.
-        \item Data path: the path to actual data file.
+        \item Job id: the unique id of the job.
+        \item Producer: the module that produced this information object.
+        \item Consumer: the module that this information object to be passed to.
+        \item Input uri: the uri to the data file.
+        \item Output path: the path to store the resulting data file.
         \item Params: the params that the module should use to process the data object.
         \item Timestample: the timestamp when the data object was created.
         \item Processing time: the time taken to process the data object.
@@ -180,6 +177,7 @@ create complex pipelines and tune parameters automatically.
 
     \subsection{User defined modules}
     Users need to put their module classes in a file in the same folder with the configuration file.
+    Then the framework will automatically load them.
 
     \subsection{Executable}
     We provide an executable that reads in the configuration file, and runs all possible configurations.
@@ -187,16 +185,15 @@ create complex pipelines and tune parameters automatically.
 
 \section{Example pipeline}
     This pipeline consists of a sample module,
-    which do nothing but add it own configuration and parameters to the data to show this pipeline is working.
+    which does nothing but adds its own configuration and parameters to the data to show this pipeline is working.
 
     \begin{figure}[H]
         \begin{center}
-            \includegraphics[width=\textwidth]{fig/toy_pipeline.png}
+            \includegraphics[width=1.2\textwidth]{fig/toy_pipeline.png}
         \end{center}
         \label{fig:toy_pipeline}
         \caption{The structure for toy pipeline}
     \end{figure}
-
 
 
 \section{Experiments}
@@ -218,6 +215,8 @@ create complex pipelines and tune parameters automatically.
     \section{Implemented Modules}
 
         Table \ref{tbl:modules} listed all modules and their parameters we implemented.
+        We have also improvemented the existing BioASQ code a lot.
+        We made a multi-process CoreMMR module, that is more than 4x faster than the original module (also depending the configuration).
 
         \begin{table}[h]
             \centering
@@ -236,8 +235,8 @@ create complex pipelines and tune parameters automatically.
     \subsection{Results}
     %Our experimental results show that the best configuration uses the following parameters: alpha=0.65, k=2, word limit=100.
 
-\section{Conclusion}
 
 \section*{Acknowledgements}
+Thanks for Khyathi's help.
 
 \end{document}
