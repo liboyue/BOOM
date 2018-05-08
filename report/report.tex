@@ -15,7 +15,7 @@
 
 \maketitle
 
-\section{Overview}
+\section{Introduction}
 
 In this project, we built a distributed parallel configuration space exploration pipeline framework,
 which can exhaustively try all possible parameter combinations automatically.
@@ -177,7 +177,9 @@ create their own modules and run on multiple processes or even multiple machines
     Then the framework will automatically load them.
 
     \subsection{Executable}
-    We provide an executable that reads in the configuration file, and runs all possible configurations.
+    We provide an executable that reads in the configuration file, and starts the whole pipeline.
+    It reads the configuration file and extracts needed infomation.
+    Then according to the configuration, it generates code for each module and execute the code using different processes.
 
 
 \section{Example pipeline}
@@ -279,6 +281,9 @@ create their own modules and run on multiple processes or even multiple machines
 
     Our experimental results show that the best configuration for the existing BioASQ pipeline uses the following parameters: alpha=0.10, k=3, word\_limit=100.
 
+
+\section{Discussion}
+\section{Future works}
 
 \section*{Acknowledgements}
 Thank you to Khyathi Chandu for her assistance.

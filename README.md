@@ -26,7 +26,7 @@ For more options, run `boom --help`.
 ## Tutorials
 Please check out the two tutorials in `examples` folder.
 
-## BOOM
+## Quick tutorails
 
 ### Basics
 There are two main components to your BOOM pipeline: the modules and the configuration file. Each pipeline can have an arbitrary number of modules (n >= 1) but there is only one configuration file that defines the pipeline. BOOM works by instantiating each module and passing data along from one module to the next, allowing each to process and transform the data along the way.
