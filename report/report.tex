@@ -47,41 +47,38 @@ create their own modules and run on multiple processes or even multiple machines
     a pipeline is constructed from several independent modules.
     A module reads data from the data server,
     processes data according to all possible parameters,
-    then save results for each configuration to the data server.
+    then save the results for each configuration to the data server.
 
     \begin{figure}[h]
         \begin{center}
             \includegraphics[width=\textwidth]{fig/control_flow.png}
         \end{center}
-        \label{fig:control_flow}
-        \caption{Control flowchart.}
+        \caption{Control flowchart.}\label{fig:control_flow}
     \end{figure}
 
     \begin{figure}[h]
         \begin{center}
             \includegraphics[width=\textwidth]{fig/information_flow.png}
         \end{center}
-        \label{fig:information_flow}
-        \caption{Information flowchart.}
+        \caption{Information flowchart.}\label{fig:information_flow}
     \end{figure}
 
 
     Every module runs on an independent process
     and communicates through RabbitMQ using the job class (defined in section \ref{sec:job}) which contains parameters, current excuetion status and the path to input file.
     Fig. \ref{fig:information_flow} describes the information flow.
-    Load balancing server distributes jobs to different modules' instances.
-    Once the job is finished, the instance send a confirmation to the load balancing server.
+    The Load balancing Server distributes jobs to different modules' instances.
+    Once the job is finished, the instance sends a confirmation to the Load Balancing Server.
 
 
-    Users only need to specify the connections between modules and the parameters every module needs,
-    the framework will automatically handle execution and configuration space exploration.
+    Users only need to specify the connections between modules and the parameters associated with each module,
+    the framework will automatically handle the exploration and execution of the configuration space.
 
     \begin{figure}[H]
         \begin{center}
             \includegraphics[width=1.2\textwidth]{fig/sample_pipeline.png}
         \end{center}
-        \label{fig:sample_pipeline}
-        \caption{A sample pipeline}
+        \caption{A sample pipeline}\label{fig:sample_pipeline}
     \end{figure}
     Figure \ref{fig:sample_pipeline} shows a sample pipeline which passes the input information object
     through some modules and produces the output information object.
@@ -91,20 +88,19 @@ create their own modules and run on multiple processes or even multiple machines
 
     \subsection{Pipeline}
     The pipeline class manages modules and parameters.
-    It reads configuration file, creates the pipeline and is the actual class for the load balancing server.
-    The pipeline can't have branches or merges, and the order of the configuration file should be the same with the actual pipeline.
+    It reads the configuration file, creates the pipeline and is the class that implements the Load Balancing Server.
+    The pipeline can't have branches or merges, and the order of the configuration file should be the same as the actual pipeline.
 
     \begin{figure}[h]
         \begin{center}
             \includegraphics[width=0.3\textwidth]{fig/pipeline_uml.png}
         \end{center}
-        \label{fig:pipeline_uml}
-        \caption{UML diagram for the pipeline class.}
+        \caption{UML diagram for the pipeline class.}\label{fig:pipeline_uml}
     \end{figure}
 
     \subsection{Module}
     A module is the basic computation unit which takes an input and produces an output.
-    Every input and output is an job object defined in sec. \ref{sec:job}.
+    Every input and output is a job object defined in sec. \ref{sec:job}.
 
     A module needs to maintain the following fields:
     \begin{itemize}
@@ -197,27 +193,16 @@ create their own modules and run on multiple processes or even multiple machines
     \end{figure}
 
 
-\section{Experiments}
 
-    \subsection{Dataset}
-    The results were run on a subset (1800 total questions) of the bioasq\_train\_formatted.json dataset.
+\section{BioASQ}
 
-    \subsection{Pipeline}
-
-    \begin{figure}[H]
-        \begin{center}
-            \includegraphics[width=\textwidth]{fig/bioasq_pipeline.png}
-        \end{center}
-        \label{fig:bioasq_pipeline}
-        \caption{The structure for BioAsq pipeline}
-    \end{figure}
-
-
-    \section{Implemented Modules}
-
+    \subsection{Implemented Modules}
         Table \ref{tbl:modules} listed all modules and their parameters we implemented.
-        We have also improved the existing BioASQ code a lot.
-        We made a multi-process CoreMMR module, that is more than 4x faster than the original module (also depending the configuration).
+        We have also made modifications to the BioASQ pipeline in the process of adapting it to work with our framework.
+        First, because the modules each need to run hundreds of times, we have made performance improvements where we could. This includes
+        making a multi-process CoreMMR module, (the most computation heavy module) that is more than 4x faster than the original module (depending the configuration).
+        We have also had to refactor the way the data gets passed along the pipeline because each module needs to handle all data in order to pass it
+        along to the next module, rather than only being passed the data relevant to its own functionality.
 
         \begin{table}[h]
             \centering
@@ -233,47 +218,69 @@ create their own modules and run on multiple processes or even multiple machines
             \label{tbl:modules}
         \end{table}
 
-    \subsection{Results}
+    \subsection{Pipeline}
+        \begin{figure}[H]
+            \begin{center}
+                \includegraphics[width=\textwidth]{fig/bioasq_pipeline.png}
+            \end{center}
+            \label{fig:bioasq_pipeline}
+            \caption{The structure for BioAsq pipeline}
+        \end{figure}
+
+    \subsection{Experiments}
+
+        \subsubsection{Dataset}
+        The results were run on a subset (1800 total questions) of the bioasq\_train\_formatted.json dataset.
+
+
+    \subsubsection{Results}
 
     Our configuration tested 2688 unique parameter combinations.
-
-    \begin{figure}
-        \begin{tabular}{lc}
-             \includegraphics[width=50mm]{fig/alpha.png} &   \includegraphics[width=50mm]{fig/k.png} \\
-            (a) Average Rouge score vs. alpha  & (b) Average Rouge score vs. number of clusters \\[10pt]
-            \multicolumn{2}{c}{\includegraphics[width=50mm]{fig/wordcount.png} }\\
-            \multicolumn{2}{c}{(c) Average Rouge score vs. max word count}
-        \end{tabular}
-        \caption{Distribution of Rouge scores across parameter configurations}
-    \end{figure}
+    Fig. \ref{fig:histogram} shows the distribution of the 2688 Rouge scores that resulted from the configuration space exploration.
+    The results clearly show that for BioASQ have two distinct clusters of scores, one for which the Rouge score is between 0.24 and 0.26,
+    and the second with scores between 0.28 and 0.32.
 
     \begin{figure}[H]
         \begin{center}
             \includegraphics[width=\textwidth]{fig/hist.png}
         \end{center}
-        \label{fig:histogram}
-        \caption{The distribution of scores across parameter configurations}
+        \caption{The distribution of scores across all 2688 parameter configurations}\label{fig:histogram}
     \end{figure}
+
+    \begin{figure}
+        \begin{tabular}{lc}
+             \includegraphics[width=50mm]{fig/alpha.png} &   \includegraphics[width=50mm]{fig/k.png} \\
+            (a) Average Rouge score vs. alpha  & (b) Average Rouge score vs. k (number of clusters) \\[10pt]
+            \multicolumn{2}{c}{\includegraphics[width=50mm]{fig/wordcount.png} }\\
+            \multicolumn{2}{c}{(c) Average Rouge score vs. word limit}
+        \end{tabular}
+        \caption{Distribution of Rouge scores against each individual parameter}\label{fig:ind_plots}
+    \end{figure}
+
+    Looking at each parameter plotted individually, as in Fig. \ref{fig:ind_plots}, we can see that the separate clusters of scores are entirely explained by the word limit parameter.
+
+    The results showed that he alpha parameter (Fig. \ref{fig:ind_plots}a) showed noticeable penalties for values greater than 0.2, although as a penalty for repetition higher values may score better on a human-evaluated readability metric.
+
+    The K parameter (Fig. \ref{fig:ind_plots}b) used in the KMeans clustering to perform sentence ordering does not have a large impact on the results.
+    This is intuitive since the purely reordering the sentences does not affect the Rouge score unless a sentence is moved to the end and clipped due to the maximum length requirement.
+
+    The maximum length parameter (Fig. \ref{fig:ind_plots}c) has by far the biggest impact on the results with a huge penalty for allowing fewer than 75 tokens, but also a decrease at greater than 150.
 
     \begin{figure}[H]
         \begin{center}
             \includegraphics[width=\textwidth]{fig/alpha_wordcount.png}
         \end{center}
-        \label{fig:alpha_wordcount}
-        \caption{The distribution of scores across parameter configurations}
+        \caption{The distribution of against both word\_limit and alpha}\label{fig:alpha_wordcount}
     \end{figure}
 
-    The results show that the K parameter used in the KMeans clustering to perform sentence ordering does not have a large impact on the results.
-    This is intuitive since the purely reordering the sentences does not affect the Rouge score unless a sentence is moved to the end and clipped due to the maximum length requirement.
+    Fig. \ref{fig:alpha_wordcount} shows Rouge score plotted against both the alpha parameter and the word\_limit parameter, the two parameters with the most influence over the Rouge score.
+    This graph shows the interaction of the two parameters and and encompasses the vast majority of the variation in Rouge score since the k parameter has a negligible impact. From this graph,
+    we can see that the maximum Rouge score appears where the alpha is low (<0.2) and the word\_limit parameter is in the range of 100-150 tokens.
 
-    The maximum length parameter has by far the biggest impact on the results with a huge penalty for allowing fewer than 75 tokens, but also a decrease at greater than 150.
-
-    The alpha parameter showed noticeable penalties for values greater than 0.2, although as a penalty for repetition higher values may score better on a human-evaluated readability metric.
-
-    %Our experimental results show that the best configuration uses the following parameters: alpha=0.10, k=2, word limit=100.
+    Our experimental results show that the best configuration for the existing BioASQ pipeline uses the following parameters: alpha=0.10, k=3, word\_limit=100.
 
 
 \section*{Acknowledgements}
-Thank you to Khyathi Chandu for help.
+Thank you to Khyathi Chandu for her assistance.
 
 \end{document}
