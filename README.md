@@ -23,6 +23,9 @@ You can also specify the configuration file to use by adding option `-conf PATH_
 
 For more options, run `boom --help`.
 
+## Tutorials
+Please check out the two tutorials in `examples` folder.
+
 ## BOOM
 
 ### Basics
