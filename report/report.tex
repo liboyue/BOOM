@@ -5,6 +5,7 @@
 \usepackage{enumerate}
 \usepackage{listings}
 \usepackage{float}
+\usepackage{subfig}
 
 \begin{document}
 
@@ -29,11 +30,11 @@ create their own modules and run on multiple processes or even multiple machines
     \subsection{Save and resume}
     The framework should be able to save intermediate results so that it can be interrupted and resume running at a later time.
 
-    \subsection{Automatical parameter exploring}
+    \subsection{Automatic parameter exploring}
     The framework should be able to automatically execute using all possible parameter combinations that have been configured by the pipeline developers.
 
     \subsection{Easy to develop users' modules}
-    The framwork should support a easy way for users to develop their own modules.
+    The framework should support a easy way for users to develop their own modules.
 
     \subsection{Load balancing}
     The framework should be able to handle load balancing since different modules require different excution time.
@@ -111,7 +112,7 @@ create their own modules and run on multiple processes or even multiple machines
         \item Number of instances.
         \item Configuration of the pipeline.
     \end{itemize}
-        
+
     When running, the pipeline will send jobs to module instances.
 
     \begin{figure}[H]
@@ -130,7 +131,7 @@ create their own modules and run on multiple processes or even multiple machines
     set and reset the value.
     There are several types of params: integer, float and collection.
 
-    It also needs to save maintain the following fileds:
+    It also needs to save maintain the following fields:
     \begin{itemize}
         \item Name of the parameter.
         \item Type of the parameter: int, float or collection.
@@ -149,7 +150,7 @@ create their own modules and run on multiple processes or even multiple machines
     \subsection{Job}
     \label{sec:job}
     The job class is the information object used between modules.
-    It maintains the following fileds:
+    It maintains the following fields:
 
     \begin{itemize}
         \item Job id: the unique id of the job.
@@ -158,7 +159,7 @@ create their own modules and run on multiple processes or even multiple machines
         \item Input uri: the uri to the data file.
         \item Output path: the path to store the resulting data file.
         \item Params: the params that the module should use to process the data object.
-        \item Timestample: the timestamp when the data object was created.
+        \item Timestamp: the timestamp when the data object was created.
         \item Processing time: the time taken to process the data object.
     \end{itemize}
 
@@ -199,7 +200,7 @@ create their own modules and run on multiple processes or even multiple machines
 \section{Experiments}
 
     \subsection{Dataset}
-    The results were run on a subset (100 total questions) of the bioasq\_train\_formatted.json dataset.
+    The results were run on a subset (1800 total questions) of the bioasq\_train\_formatted.json dataset.
 
     \subsection{Pipeline}
 
@@ -233,10 +234,38 @@ create their own modules and run on multiple processes or even multiple machines
         \end{table}
 
     \subsection{Results}
-    %Our experimental results show that the best configuration uses the following parameters: alpha=0.65, k=2, word limit=100.
+
+    \begin{figure}
+        \begin{tabular}{lc}
+             \includegraphics[width=50mm]{fig/alpha.png} &   \includegraphics[width=50mm]{fig/k.png} \\
+            (a) Average Rouge score vs. alpha  & (b) Average Rouge score vs. number of clusters \\[10pt]
+            \multicolumn{2}{c}{\includegraphics[width=50mm]{fig/wordcount.png} }\\
+            \multicolumn{2}{c}{(c) Average Rouge score vs. max word count}
+        \end{tabular}
+        \caption{Distribution of Rouge scores across parameter configurations}
+    \end{figure}
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/hist.png}
+        \end{center}
+        \label{fig:histogram}
+        \caption{The distribution of scoress across parameter configurations}
+    \end{figure}
+
+    \begin{figure}[H]
+        \begin{center}
+            \includegraphics[width=\textwidth]{fig/alpha_wordcount.png}
+        \end{center}
+        \label{fig:alpha_wordcount}
+        \caption{The distribution of scores across parameter configurations}
+    \end{figure}
+
+
+    %Our experimental results show that the best configuration uses the following parameters: alpha=0.10, k=2, word limit=100.
 
 
 \section*{Acknowledgements}
-Thanks for Khyathi's help.
+Thank you to Khyathi Chandu for help.
 
 \end{document}
