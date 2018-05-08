@@ -216,7 +216,7 @@ create their own modules and run on multiple processes or even multiple machines
     \section{Implemented Modules}
 
         Table \ref{tbl:modules} listed all modules and their parameters we implemented.
-        We have also improvemented the existing BioASQ code a lot.
+        We have also improved the existing BioASQ code a lot.
         We made a multi-process CoreMMR module, that is more than 4x faster than the original module (also depending the configuration).
 
         \begin{table}[h]
@@ -235,6 +235,8 @@ create their own modules and run on multiple processes or even multiple machines
 
     \subsection{Results}
 
+    Our configuration tested 2688 unique parameter combinations.
+
     \begin{figure}
         \begin{tabular}{lc}
              \includegraphics[width=50mm]{fig/alpha.png} &   \includegraphics[width=50mm]{fig/k.png} \\
@@ -250,7 +252,7 @@ create their own modules and run on multiple processes or even multiple machines
             \includegraphics[width=\textwidth]{fig/hist.png}
         \end{center}
         \label{fig:histogram}
-        \caption{The distribution of scoress across parameter configurations}
+        \caption{The distribution of scores across parameter configurations}
     \end{figure}
 
     \begin{figure}[H]
@@ -261,6 +263,12 @@ create their own modules and run on multiple processes or even multiple machines
         \caption{The distribution of scores across parameter configurations}
     \end{figure}
 
+    The results show that the K parameter used in the KMeans clustering to perform sentence ordering does not have a large impact on the results.
+    This is intuitive since the purely reordering the sentences does not affect the Rouge score unless a sentence is moved to the end and clipped due to the maximum length requirement.
+
+    The maximum length parameter has by far the biggest impact on the results with a huge penalty for allowing fewer than 75 tokens, but also a decrease at greater than 150.
+
+    The alpha parameter showed noticeable penalties for values greater than 0.2, although as a penalty for repetition higher values may score better on a human-evaluated readability metric.
 
     %Our experimental results show that the best configuration uses the following parameters: alpha=0.10, k=2, word limit=100.
 
