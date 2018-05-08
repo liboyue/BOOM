@@ -37,25 +37,73 @@ The building block of a BOOM pipeline is the [Module class](https://bioasq.boyue
 #### Configuration Files
 The configuration file defines the structure and composition of the pipeline and allows the user to define a parameter space for the pipeline to be executed over. The configuration is written is a YAML file and contains two core components: `pipeline`, where pipeline metadata is declared, and `modules`, where the pipeline composition is defined.
 
-![YAML Pipeline Declaration](/images/toy_yaml_pipeline.png)
+Following is the `pipeline` section of the toy example's configuration file:
+
+    pipeline:
+        name: toy_pipeline
+        rabbitmq_host: 127.0.0.1
+        clean_up: false
+        use_mongodb: false
+        mongodb_host: 127.0.0.1
 
 Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
 
-    name: bioasq_pipeline
-    rabbitmq_host: 127.0.0.1
-    clean_up: false
-    use_mongodb: false
-    mongodb_host: 127.0.0.1
+    name
+    rabbitmq_host
+    clean_up
+    use_mongodb
+    mongodb_host
 
 `name` allows the user to declare a name for the pipeline. `rabbitmq_host` and `mongodb_host` are simply the host addresses for RabbitMQ and MongoDB, respectively. `clean_up` is a boolean value that will delete intermediate output files if declared `true`. `use_mongodb` is a boolean value that will write data to MongoDB instead of files if declared `true`.
 
-![Toy conf.yaml](/images/toy_conf.png)
+Following is the `modules` section of the toy example's configuration file:
+
+    modules:
+        -   name: module_1
+            type: Sample
+            input_file: data.json
+            output_module: module_2
+            instances: 1
+            params:
+                -   name: p1
+                    type: collection
+                    values:
+                        - val1
+                        - val2
+                        - val3
+
+                -   name: p2
+                    type: int
+                    start: 0
+                    end: 20
+                    step_size: 20
+
+        -   name: module_2
+            type: Sample
+            output_module: module_3
+            instances: 1
+            params:
+                -   name: p
+                    type: float
+                    start: 0.0
+                    end: 80.0
+                    step_size: 40.0
+            
+        -   name: module_3
+            type: Sample
+            output_module: module_4
+            instances: 1
+
+        -   name: module_4
+            type: CSVWriter
+            output_file: results.csv 
+            instances: 1
 
 The `modules` section of the configuration file should contain a list of modules. Each module consists of a set of key-value pairs which  must include `name`, `type`, `input_file` (first module only), `output_module` (or `output_file` for the last module), `instances`, and (optionally) `params`. `params` is a list of parameters, defined by a `name`, `type` (float, int, or collection). If the parameter is a float or int, the param should also contain `start`, `end`, and `step_size`. If the parameter is of type collection, then it should contain a `values` list.
+
+## API documentation
+You can find the API documentation [here](https://boom.boyue.li).
 
 ## Warning
 This framework is still under heavy development,
 please be careful.
-
-## API documentation
-You can find the API documentation [here](https://boom.boyue.li).
