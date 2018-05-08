@@ -1,10 +1,10 @@
 # BOOM
-An easy-to-use multi-process question answering pipeline framework.
+An easy-to-use multi-process Configuration Space Exploration pipeline framework.
 
 ## Features
 - Easy to use: you only need to write your configuration file and modules, we will handle everything else!
-- Flexible: we (will) offer common modules for QA pipelines, and it is very easy to develop your own modules.
-- Parameter tuning: automatically experiment on all possible parameter combinations and saves the results.
+- Flexible: we offer common modules for QA pipelines, and it is very easy to develop your own modules.
+- Parameter tuning: automatically run on all possible parameter combinations and saves the results.
 - High efficiency: we use multiple processes to run the whole pipeline.
 
 ## Installation
