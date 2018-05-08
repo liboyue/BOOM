@@ -85,6 +85,28 @@ create their own modules and run on multiple processes or even multiple machines
 
     We also provided a command line executable, to ease users' pain of coding.
 
+    \subsection{Technical concerns}
+
+        \subsubsection{Trade off between simplicity and expressiveness}
+        We want to provied a simple frame work for people who need to explore some configuration spaces but don't want to spend too much time on writing complicated code.
+        It is a trade off.
+        If we support a lot of fancy functionalities, the code would be too hard to understand.
+        We decided to implement a minimal working framework, and let users deal with the complexity caused by their own code.
+
+        \subsubsection{Programming language}
+        Since we want a simple framework, Python is the best choice.
+        Because Python 3 has far better performance, we finally decided to use Python 3.
+
+        \subsubsection{Message queue}
+        The reason we used RabbitMQ is that it provides a simple, lightweight and reliable solution to pass messages through processes or different machines.
+
+        \subsubsection{Parameter types}
+        We support 3 types of parameters: int, float and collection.
+
+        \subsubsection{Data storage}
+        We support 2 types of data: a plain file on disk or a file from MongoDB.
+        MongoDB's virtual filesystem, GridFS, can be accessed as long as there's internet connection.
+        This functionality is crucial to migrating the application to clouds like AWS.
 
     \subsection{Pipeline}
     The pipeline class manages modules and parameters.
