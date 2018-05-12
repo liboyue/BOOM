@@ -22,6 +22,10 @@ which can exhaustively try all possible parameter combinations automatically.
 Users can easily configure multiple modules,
 create their own modules and run on multiple processes or even multiple machines.
 
+\cite{yang2016analytics} described a framework to solve the meta learning problem,
+whose last step is analytics space exploration.
+Different from them, we built a general Python framework, which could take arbitrary input and run on several different machines.
+
 \section{Requirements}
 
     \subsection{Easy to configure and deploy}
@@ -218,7 +222,10 @@ create their own modules and run on multiple processes or even multiple machines
 
 
 
-\section{BioASQ}
+\section{BioASQ Experiment}
+
+    We built a BioASQ pipeline based on \cite{yang2016learning},
+    and showed our framework could help on finding the best configurations.
 
     \subsection{Implemented Modules}
         Table \ref{tbl:modules} listed all modules and their parameters we implemented.
@@ -251,13 +258,11 @@ create their own modules and run on multiple processes or even multiple machines
             \caption{The structure for BioAsq pipeline}
         \end{figure}
 
-    \subsection{Experiments}
-
-        \subsubsection{Dataset}
-        The results were run on a subset (1800 total questions) of the bioasq\_train\_formatted.json dataset.
+    \subsection{Dataset}
+    The results were run on a subset (1800 total questions) of the bioasq\_train\_formatted.json dataset.
 
 
-    \subsubsection{Results}
+    \subsection{Results}
 
     Our configuration tested 2688 unique parameter combinations.
     Fig. \ref{fig:histogram} shows the distribution of the 2688 Rouge scores that resulted from the configuration space exploration.
@@ -304,10 +309,26 @@ create their own modules and run on multiple processes or even multiple machines
     Our experimental results show that the best configuration for the existing BioASQ pipeline uses the following parameters: alpha=0.10, k=3, word\_limit=100.
 
 
-\section{Discussion}
 \section{Future works}
+    \subsection{Job-level profiling}
+    We need to profile each job to know the performance bottleneck of a pipeline.
+    So that we could configure the pipeline differently to optimize its performance.
+
+    \subsection{Automatical load balancing}
+    We hope to control all modules automatically according to the performance of each module.
+
+    \subsection{Better method to start/stop modules}
+    To manage a cluster, we need different method to start/stop modules on different machines and also different methods to distribute code to each machine.
+
+    \subsection{Fully support for using cloud}
+    We have supported MongoDB to store data, but we need more components to fully support running on the cloud.
 
 \section*{Acknowledgements}
 Thank you to Khyathi Chandu for her assistance.
+
+
+\bibliographystyle{abbrv}
+\bibliography{ref}
+
 
 \end{document}
