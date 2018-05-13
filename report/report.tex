@@ -7,6 +7,7 @@
 \usepackage{float}
 \usepackage{subfig}
 
+
 \begin{document}
 
 \title{11-792 Project Report}
@@ -224,8 +225,14 @@ Different from them, we built a general Python framework, which could take arbit
 
 \section{BioASQ Experiment}
 
-    We built a BioASQ pipeline based on \cite{yang2016learning},
-    and showed our framework could help on finding the best configurations.
+    \subsection{The BioASQ Competition}
+    The BioASQ Competition is a Question Answering challenge in which competitors are tasked with developing a system capable of answering a biomedical question when provided
+    excerpts from relevant research papers. .
+
+    \subsection{The OAQA BioASQ Pipeline}
+    The OAQA BioASQ Pipeline \cite{chandu2017tackling} is a highly modularized pipeline developed at Carnegie Mellon University as part of the BioASQ Competition. It performs
+    extractive summarization to generate responses to questions in the biomedical domain. It is composed of modules that perform candidate selection, candidate ranking, sentence ordering,
+    and sentence tiling. We used the OAQA BioASQ pipeline as a use case to guide development of BOOM and performed all our intitial experiments and benchmarking on the OAQA BioASQ pipeline.
 
     \subsection{Implemented Modules}
         Table \ref{tbl:modules} listed all modules and their parameters we implemented.
@@ -309,7 +316,7 @@ Different from them, we built a general Python framework, which could take arbit
     Our experimental results show that the best configuration for the existing BioASQ pipeline uses the following parameters: alpha=0.10, k=3, word\_limit=100.
 
 
-\section{Future works}
+\section{Future Work}
     \subsection{Job-level profiling}
     We need to profile each job to know the performance bottleneck of a pipeline.
     So that we could configure the pipeline differently to optimize its performance.
@@ -322,6 +329,16 @@ Different from them, we built a general Python framework, which could take arbit
 
     \subsection{Fully support for using cloud}
     We have supported MongoDB to store data, but we need more components to fully support running on the cloud.
+
+    \subsection{Intelligently search the space}
+    Instead of requiring the user to define not only the parameter space, but also the regular interval at which the space is sampled, the framework should be able
+    to randomly sample the space at a low resolution and then make its own decision about which regions of the space to sample more finely based on the initial results.
+
+    \subsection{Modules as parameters}
+    The framework should provide a way to swap out modules as part of the configuration space. Currently, module behavior can be controlled using a collection type parameter
+    and behavior can be altered based on the parameter passed to the module. In this way we can simulate the effect of swapping out different modules, but if the modules
+    have different parameters associated with them then redundant parameter configurations will be generated since the framework generates all possible parameter configurations.
+    The framework should offer more support for these kinds of configurations where parameters should be generated as pairs and certain configurations are not relevant.
 
 \section*{Acknowledgements}
 Thank you to Khyathi Chandu for her assistance.
