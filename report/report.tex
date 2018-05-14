@@ -311,7 +311,7 @@ Different from them, we built a general Python framework, which could take arbit
 
     Fig. \ref{fig:alpha_wordcount} shows Rouge score plotted against both the alpha parameter and the word\_limit parameter, the two parameters with the most influence over the Rouge score.
     This graph shows the interaction of the two parameters and and encompasses the vast majority of the variation in Rouge score since the k parameter has a negligible impact. From this graph,
-    we can see that the maximum Rouge score appears where the alpha is low (<0.2) and the word\_limit parameter is in the range of 100-150 tokens.
+    we can see that the maximum Rouge score appears where the alpha is low ($<$0.2) and the word\_limit parameter is in the range of 100-150 tokens.
 
     Our experimental results show that the best configuration for the existing BioASQ pipeline uses the following parameters: alpha=0.10, k=3, word\_limit=100.
 
@@ -319,13 +319,13 @@ Different from them, we built a general Python framework, which could take arbit
 \section{Future Work}
     \subsection{Job-level profiling}
     We need to profile each job to know the performance bottleneck of a pipeline.
-    So that we could configure the pipeline differently to optimize its performance.
+    Having this information would allow the user to configure the pipeline differently to optimize its performance and assist the framework with load balancing.
 
-    \subsection{Automatical load balancing}
-    We hope to control all modules automatically according to the performance of each module.
+    \subsection{Automatic load balancing}
+    We hope to control all modules automatically according to the performance of each module. This includes allocating resources and distributing jobs based on measured compute intensity.
 
     \subsection{Better method to start/stop modules}
-    To manage a cluster, we need different method to start/stop modules on different machines and also different methods to distribute code to each machine.
+    To manage a cluster, we need a different method to start and stop modules on different machines and also different methods to distribute code to each machine.
 
     \subsection{Fully support for using cloud}
     We have supported MongoDB to store data, but we need more components to fully support running on the cloud.
