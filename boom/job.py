@@ -3,7 +3,7 @@ import bson
 import glog as log
 from datetime import datetime
 
-class Job:
+class Job(object):
     """The information object class."""
     
     def __init__(self, job_id, input_uri, output_base, output_path, params = None, producer = None, consumer = None, processing_time = None):
@@ -59,6 +59,7 @@ class Job:
     ## Deserialize the object from a json formatted string.
     #  @param json_str the json formatted string.
     #  @return the deserialize Job object.
+    @staticmethod
     def from_json(json_str):
         data = json.loads(json_str)
         return Job(

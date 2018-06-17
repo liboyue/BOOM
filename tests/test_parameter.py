@@ -46,7 +46,7 @@ def test_get_values():
         return True
 
     assert _compare_lists(list(Parameter(int_conf).get_values()), list(range(1, 11)))
-    assert _compare_float_lists(list(Parameter(float_conf).get_values()), list([x/10 for x in range(0, 11)]))
+    assert _compare_float_lists(list(Parameter(float_conf).get_values()), list([x/10.0 for x in range(0, 11)]))
     assert _compare_lists(list(Parameter(collection_conf).get_values()), ['a', 'b', 'c'])
 
 def test_get_n_choices():

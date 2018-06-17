@@ -10,7 +10,7 @@ This is an Abstract class that serves as a template for implementations for orde
 '''
 
 
-class SentenceOrderer():
+class SentenceOrderer(object):
     __metaclass__ = abc.ABCMeta
 
     # abstract method that should be implemented by the subclass that extends this abstract class

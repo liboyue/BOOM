@@ -13,7 +13,7 @@ This code contains the abstract class for Tiler.
 This is an Abstract class that serves as a template for implementations for tiling sentences.
 Currently there is only one technique implemented which is simple concatenation.
 '''
-class Tiler:
+class Tiler(object):
 	__metaclass__ = abc.ABCMeta
 	@classmethod
 	def __init__(self):

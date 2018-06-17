@@ -10,7 +10,7 @@ import numpy as np
 from .job import Job
 from .parameter import Parameter
 
-class Pipeline:
+class Pipeline(object):
     "The pipeline class creates the pipeline, and manages execution."
 
     ##  Initialization.
@@ -168,7 +168,8 @@ class Pipeline:
         if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
                 for val in Parameter(mod_conf['params'][i]).get_values():
-                    yield {**{mod_conf['params'][i]['name']: val}, **tmp}
+                    tmp[mod_conf['params'][i]['name']] = val
+                    yield tmp
         else:
             yield {}
 

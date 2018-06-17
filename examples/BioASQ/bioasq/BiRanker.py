@@ -16,7 +16,7 @@ This code contains the abstract class for the BiRanker.
 This is an Abstract class that serves as a template for implementations for:
 ranking among sentences and ranking with question.
 '''
-class BiRanker:
+class BiRanker(object):
 	__metaclass__ = abc.ABCMeta
 	@classmethod
 	def __init__(self):

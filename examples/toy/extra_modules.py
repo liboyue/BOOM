@@ -1,10 +1,10 @@
 import glog as log
-from src.modules import Module
+from boom.modules import Module
 
 class Sample(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(Sample, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
 
     def process(self, job, data):
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # coding=utf-8
 import glog as log
-from src.modules import Module
+from boom.modules import Module
 from bioasq.KMeansOrderer import KMeansOrderer
 
 class Orderer(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(Orderer, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.orderer = KMeansOrderer()
 
     def process(self, job, data):
@@ -30,7 +30,7 @@ from rouge import Rouge as RougeLib
 class Rouge(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(Rouge, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.evaluator = RougeLib()
 
     def process(self, job, data):
@@ -68,7 +68,7 @@ def multi_process_helper(args):
 class CoreMMR(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(CoreMMR, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.processes = module_conf['processes'] if 'processes' in module_conf else 1
         self.pool = Pool(processes=self.processes)
 
@@ -81,8 +81,9 @@ class CoreMMR(Module):
 
         questions = data['questions']
         N = len(questions)
-        step_size = int(N / self.processes)
+        step_size = int(N / float(self.processes))
         slices = [(questions[i:i+step_size], job.params['alpha']) for i in range(0, N, step_size)]
+        # print("\n\n\nN = " + str(N) + ", step size = " + str(step_size) + ", N_slices = " + str(len(slices)) + '\n\n\n')
         tmp = self.pool.map(multi_process_helper, slices)
 
         result = []
@@ -96,7 +97,7 @@ from bioasq.Concatenation import Concatenation
 class Tiler(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(Tiler, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.concatenator = Concatenation()
 
     def process(self, job, data):

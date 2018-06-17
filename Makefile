@@ -1,4 +1,4 @@
-.PHONY: all, install, test, doc
+.PHONY: all, install, test, doc, clean
 
 all:
 	make install
@@ -15,6 +15,9 @@ test:
 
 doc:
 	doxygen Doxyfile
+
+clean:
+	rm -r dist
 
 uninstall:
 	pip uninstall boom -y

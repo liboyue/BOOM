@@ -6,7 +6,7 @@ import yaml
 from pymongo import MongoClient
 import gridfs
 
-class Module():
+class Module(object):
     """The base module class. Every actual module should be derived from this class."""
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):

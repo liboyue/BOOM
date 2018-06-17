@@ -6,7 +6,7 @@ from .module import Module
 class CSVWriter(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super().__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(CSVWriter, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.content = []
         self.header = []
 
@@ -29,7 +29,7 @@ class CSVWriter(Module):
         if not os.path.exists(job.output_base):
             os.mkdir(job.output_base)
 
-        with open(path, 'w', newline='') as csvfile:
+        with open(path, 'w') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['configuration'] + self.header)
             for row in self.content:

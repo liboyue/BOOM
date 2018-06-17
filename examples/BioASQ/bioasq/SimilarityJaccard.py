@@ -4,7 +4,7 @@ from nltk.tokenize import word_tokenize
 
 class SimilarityJaccard(SimilarityMeasure):
     def __init__(self):
-        super().__init__('', '')
+        super(SimilarityJaccard, self).__init__('', '')
 
     def calculateSimilarity(self, s1, s2):
 

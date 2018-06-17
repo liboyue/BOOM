@@ -6,7 +6,7 @@ import gflags
 import sys
 import boom
 import json 
-import asyncio
+import subprocess
 
 
 if __name__ == '__main__':
@@ -59,7 +59,8 @@ if __name__ == '__main__':
             #+ ','.join([k + '=\'' + str(module[k]) + '\'' for k in module if k != 'params' and k != 'name']) + ',' \
             #+ ','.join([k + '=' + str(conf['pipeline'][k]) for k in conf['pipeline'] if k != 'rabbitmq_host' and k != 'name']) \
             log.debug(cmd)
-            l.append(asyncio.create_subprocess_shell(cmd))
+            # l.append(asyncio.create_subprocess_shell(cmd))
+            l.append(subprocess.Popen(cmd, shell=True))
             log.warn("Starting module " + module['name'] + " instance " + str(i) + ", instance id = " + str(cur_id))
             cur_id += 1
 
@@ -69,10 +70,8 @@ if __name__ == '__main__':
     else:
         cmd = "python -c \"import sys\nimport gflags\nimport boom\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=boom.Pipeline('" + FLAGS.conf + "')\np.run()\" -verbosity=" + FLAGS.verbosity
     log.debug(cmd)
-    l.append(asyncio.create_subprocess_shell(cmd))
+    l.append(subprocess.Popen(cmd, shell=True))
 
+    for p in l:
+        p.wait()
 
-    # Start
-    loop = asyncio.get_event_loop()
-    # Wait
-    loop.run_until_complete(asyncio.gather(*l))

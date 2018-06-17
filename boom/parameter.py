@@ -1,4 +1,4 @@
-class Parameter:
+class Parameter(object):
     """This class handles parameters."""
 
     def __init__(self, conf):

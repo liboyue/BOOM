@@ -10,7 +10,7 @@ This code contains the implementation of Abstract method for BiRanker.
 
 class CoreMMR(BiRanker):
     def __init__(self):
-        super().__init__()
+        super(CoreMMR, self).__init__()
         self.jaccard = SimilarityJaccard()
 
     #implementation of the abstract method that takes question as input and returns a ranked list of sentences as output
