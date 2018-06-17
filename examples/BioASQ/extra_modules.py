@@ -83,7 +83,6 @@ class CoreMMR(Module):
         N = len(questions)
         step_size = int(N / float(self.processes))
         slices = [(questions[i:i+step_size], job.params['alpha']) for i in range(0, N, step_size)]
-        # print("\n\n\nN = " + str(N) + ", step size = " + str(step_size) + ", N_slices = " + str(len(slices)) + '\n\n\n')
         tmp = self.pool.map(multi_process_helper, slices)
 
         result = []
