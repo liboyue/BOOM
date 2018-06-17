@@ -1,7 +1,9 @@
-pyyaml
 glog
-pytest
+numpy
 pika
 pydotplus
-rouge
 pymongo
+pytest
+pyyaml
+rouge
+six
