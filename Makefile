@@ -6,9 +6,9 @@ all:
 	#make doc
 
 install:
-	pip install -r requirements.txt
-	python setup.py sdist
-	pip install dist/boom-0.1.tar.gz
+	pip3 install -r requirements.txt
+	python3 setup.py sdist
+	pip3 install dist/boom-0.1.tar.gz
 
 test:
 	py.test -v --color=yes tests
@@ -20,4 +20,4 @@ clean:
 	rm -r dist
 
 uninstall:
-	pip uninstall boom -y
+	pip3 uninstall boom -y
