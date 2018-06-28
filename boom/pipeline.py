@@ -1,14 +1,20 @@
 import yaml
 import json
-import glog as log
+import boom
 import os
 import time
 import pika
 import pydotplus
 import numpy as np
 
+from .log import set_logger
+import glog as log
 from .job import Job
 from .parameter import Parameter
+
+import logging
+# Disable Pika's debugging messages
+logging.getLogger("pika").propagate = False
 
 class Pipeline(object):
     "The pipeline class creates the pipeline, and manages execution."
@@ -17,6 +23,7 @@ class Pipeline(object):
     #  @param conf_path The path to the configuration file.
     def __init__(self, conf_path):
 
+ 
         ## The internal job ID counter. It is the id of next job to use.
         self.cur_job_id = 0
 
@@ -26,6 +33,9 @@ class Pipeline(object):
         with open(conf_path) as f:
             ## Content of the configuration file.
             self.conf = yaml.load(f)
+
+        # Initialize logger.
+        set_logger(self.conf['pipeline']['rabbitmq_host'])
 
         log.info('Loading configuration file from ' + conf_path)
         log.info(json.dumps(self.conf, indent = 4))
@@ -79,6 +89,8 @@ class Pipeline(object):
         self.module_queues = {
                 mod['name']: self.channel.queue_declare(queue=mod['name']).method.queue for mod in self.conf['modules']
                 }
+
+        self.module_queues['logger'] = self.channel.queue_declare(queue='logger').method.queue
 
         ## Bind queues
         for queue in self.module_queues:
@@ -216,6 +228,8 @@ class Pipeline(object):
                 for module in self.conf['modules']:
                     for i in range(module['instances']):
                         self.send_command(module['name'], -1, 'shutdown')
+                self.send_command('logger', -1, 'shutdown')
+
 
                 log.warn('All jobs are completed, shutting down the pipeline')
                 self.channel.stop_consuming()

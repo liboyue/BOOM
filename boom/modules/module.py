@@ -1,10 +1,16 @@
 import json
 import pika
+from ..log import set_logger
 import glog as log
+#from ..log import get_logger
 from ..job import Job
 import yaml
 from pymongo import MongoClient
 import gridfs
+
+import logging
+# Disable Pika's debugging messages
+logging.getLogger("pika").propagate = False
 
 class Module(object):
     """The base module class. Every actual module should be derived from this class."""
@@ -16,6 +22,9 @@ class Module(object):
 
         ## The module's name.
         self.name = name
+
+        # Initialize logger.
+        set_logger(rabbitmq_host)
 
         ## The module's input file path. None if not exists.
         self.use_mongodb = pipeline_conf['use_mongodb'] if 'use_mongodb' in pipeline_conf else False
@@ -51,7 +60,8 @@ class Module(object):
         # Connect
         self.connect()
 
-    def connect(self):
+
+    def connect(self, prefetch_count = 1):
         ## The connection the module instance uses.
         self.connection = pika.BlockingConnection(
                 pika.ConnectionParameters(
@@ -63,8 +73,10 @@ class Module(object):
 
         ## The channel the module instance uses.
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=self.name)
-        self.channel.basic_qos(prefetch_count=1)
+
+        ## The queue the module instance uses.
+        self.queue = self.channel.queue_declare(queue=self.name)
+        self.channel.basic_qos(prefetch_count=prefetch_count)
 
         # Connect to RabbitMQ
         self.channel.basic_consume(self.receive_job, queue=self.name)

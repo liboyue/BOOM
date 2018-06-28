@@ -7,10 +7,10 @@ class Logger(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
         super(Logger, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
-        ## The buffer for logs
+        ## The buffer for logs.
         self.buf = []
 
-    ## The function to handle incoming logs
+    ## The function to handle incoming logs.
     def receive_job(self, ch, method, properties, body):
 
         # Parse request body.
@@ -18,9 +18,11 @@ class Logger(Module):
         if data['type'] == 'log':
             ch.basic_ack(delivery_tag = method.delivery_tag)
             self.channel.stop_consuming()
+
             self.buf.append(data['body'])
 
-            if len(self.buf) == 500:
+            # Save if more than 100 logs in buffer.
+            if len(self.buf) == 100:
                 self.save()
 
             # Connect
@@ -39,13 +41,20 @@ class Logger(Module):
 
     ## The function to save files.
     def save(self):
-        with open('log.txt', 'w+') as f:
+
+        with open('log.txt', 'a') as f:
             f.write('\n'.join(self.buf) + '\n')
+
         self.buf = []
-        log.info('Saved logs')
 
     ## Clean up before exiting.
     def cleanup(self):
+        self.connect()
+        log.debug(str(self.queue.method.message_count) + ' logs in the logger queue left')
+
+        while self.queue.method.message_count > 0:
+            self.channel.start_consuming()
+            
         if len(self.buf) > 0:
             self.save()
 
