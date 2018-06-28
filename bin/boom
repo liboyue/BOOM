@@ -1,77 +1,249 @@
 #!/usr/bin/env python
 # coding=utf-8
 import yaml
-import glog as log
 import gflags
 import sys
 import boom
-import json 
+import glog as log
+import os
 import subprocess
+import shutil
+import pika
+import logging
+
+# Disable Pika's debugging messages
+logging.getLogger("pika").propagate = False
+
+## The function to test if RabbitMQ is running
+#  @param rabbitmq_host The host of RabbitMQ server
+#  @return True if RabbitMQ is running, False otherwise
+def rabbitmq_status(rabbitmq_host):
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+        return True
+    except:
+        return False
+
+## The function to save code to files, copy extra modules and zip the code
+#  @param code The code to save
+#  @param dir_name The directory to save the code
+def write_and_zip_code(code, dir_name):
+    # Make the dir
+    os.mkdir(dir_name)
+
+    # Copy conf file to the module's dir
+    #shutil.copy2('conf.yaml', dir_name)
+
+    # Copy libraries to the module's dir
+    shutil.copytree('extra_modules', dir_name + '/extra_modules', ignore = shutil.ignore_patterns('*.pyc', '__pycache__', '.*'))
+
+    # Write executable code
+    with open(dir_name + '/__main__.py', 'w') as f:
+        f.write(code)
+
+    # Zip it!
+    shutil.make_archive(dir_name, 'zip', dir_name)
+
+
+def generate_module_code(conf, module, cur_id):
+
+    if module['type'] == 'CSVWriter':
+        code = "import sys\nimport gflags\nfrom boom.modules import CSVWriter\n"
+    elif module['type'] == 'Logger':
+        code = "import sys\nimport gflags\nfrom boom.modules import Logger\n"
+    else:
+        code = "import sys\nimport gflags\nfrom boom.modules import *\nfrom extra_modules." + module['type'] + " import " + module['type'] + "\n"
+
+    code += "if __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n" \
+        + '    ' + module['type'] + "(" \
+        + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " \
+        + str(conf['pipeline']) \
+        + ',' + str(module) \
+        + ").run()\n"
+
+    if FLAGS.profile :
+        #log.warn("Profile module " + module['name'])
+        code = "import cProfile, pstats, io\npr = cProfile.Profile()\npr.enable()\n" + code + "    pr.disable()\n    s = io.StringIO()\n    pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats()\n    with open('profile_" + module['name']+ ".txt', 'w') as f:\n        f.write(s.getvalue())\n"
+
+    return code
 
 
 if __name__ == '__main__':
+
     gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
+    gflags.DEFINE_string('tmp_dir', 'tmp', 'path to the temporare directory')
     gflags.DEFINE_boolean('plot', False, 'plots the pipeline')
     gflags.DEFINE_boolean('profile', False, 'profile each module')
     gflags.DEFINE_boolean('help', False, 'print the help message')
     gflags.DEFINE_boolean('info', False, 'print details about the pipeline, including how many modules, how many jobs, etc.')
 
-    # Parse args
+    # Parse args.
     FLAGS = gflags.FLAGS
     FLAGS(sys.argv)
 
-    if (FLAGS.help):
+    # Print help info.
+    if FLAGS.help:
         print(FLAGS)
         quit()
 
-    # Load conf
+    # Load conf.
     with open(FLAGS.conf) as f:
         conf = yaml.load(f)
+
+    # Initialze logger.
+    boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
+
+    # The flag variable notes if we need to manage RabbitMQ.
+    manage_rabbit = rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False
+    if manage_rabbit == True:
+        pass
+
     log.warn('Loglevel: ' + FLAGS.verbosity)
     log.warn('Loaded configuration file from: ' + FLAGS.conf)
+    log.warn('Running mode: ' + conf['pipeline']['mode'])
 
     # Print info
-    if (FLAGS.info):
-        from boom import Pipeline
-        n_jobs = Pipeline.calculate_total_jobs(None, conf)
+    if FLAGS.info:
+        n_jobs = boom.Pipeline.calculate_total_jobs(None, conf)
         n_modules = len(conf['modules'])
-        print('There are ' + str(n_modules) + ' modules in pipeline ' + conf['pipeline']['name'] + ', ' + str(n_jobs) + ' jobs in total.')
+        log.warn('There are ' + str(n_modules) + ' modules in pipeline ' + conf['pipeline']['name'] + ', ' + str(n_jobs) + ' jobs in total.')
         quit()
 
-    # Generate command for each module
-    l = []
-    cur_id = 0
-    for module in conf['modules']:
-        module['params'] = None
-        for i in range(int(module['instances'])):
-            code = "import sys\nimport gflags\nfrom boom.modules import *\nfrom extra_modules import *\n" \
-                + "FLAGS = gflags.FLAGS\nFLAGS(sys.argv)\n" \
-                + module['type'] + "(" \
-                + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " \
-                + str(conf['pipeline']) \
-                + ',' + str(module) \
-                + ").run()\n"
-            if FLAGS.profile :
-                log.warn("Profile module " + module['name'])
-                code = "import cProfile, pstats, io\npr = cProfile.Profile()\npr.enable()\n" + code + "pr.disable()\ns = io.StringIO()\npstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats()\nwith open('profile_" + module['name']+ ".txt', 'w') as f:\n    f.write(s.getvalue())\n"
+    # Create tmp dir
+    if os.path.isdir(FLAGS.tmp_dir) == True:
+        shutil.rmtree(FLAGS.tmp_dir)
+    os.mkdir(FLAGS.tmp_dir)
 
-            cmd = "python -c \"" + code + "\" -verbosity=" + FLAGS.verbosity
-            #+ ','.join([k + '=\'' + str(module[k]) + '\'' for k in module if k != 'params' and k != 'name']) + ',' \
-            #+ ','.join([k + '=' + str(conf['pipeline'][k]) for k in conf['pipeline'] if k != 'rabbitmq_host' and k != 'name']) \
-            log.debug(cmd)
-            # l.append(asyncio.create_subprocess_shell(cmd))
-            l.append(subprocess.Popen(cmd, shell=True))
-            log.warn("Starting module " + module['name'] + " instance " + str(i) + ", instance id = " + str(cur_id))
+    # Generate code for each module
+    cur_id = 1
+    dir_list = []
+
+    for module in conf['modules']:
+
+        module['params'] = None
+
+        # Repeat number of instances of each module
+        for i in range(int(module['instances'])):
+
+            # Generate code
+            code = generate_module_code(conf, module, cur_id)
+
+            # Save and zip code
+            dir_name = FLAGS.tmp_dir + '/' + str(cur_id)
+            dir_list.append(dir_name)
+            write_and_zip_code(code, dir_name)
+
+            # DON'T FORGET TO UPDATE cur_id
             cur_id += 1
 
-    # Generate command for pipeline
-    if FLAGS.plot:
-        cmd = "python -c \"import sys\nimport gflags\nimport boom\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=boom.Pipeline('" + FLAGS.conf + "')\np.plot()\np.run()\" -verbosity=" + FLAGS.verbosity
-    else:
-        cmd = "python -c \"import sys\nimport gflags\nimport boom\nFLAGS = gflags.FLAGS\nFLAGS(sys.argv)\np=boom.Pipeline('" + FLAGS.conf + "')\np.run()\" -verbosity=" + FLAGS.verbosity
-    log.debug(cmd)
-    l.append(subprocess.Popen(cmd, shell=True))
+        # end for
 
-    for p in l:
-        p.wait()
+    # end for
+
+    # Generate code for pipeline
+    if FLAGS.plot:
+        code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p=boom.Pipeline('" + FLAGS.conf + "')\n    p.plot()\n    p.run()"
+    else:
+        code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p=boom.Pipeline('" + FLAGS.conf + "')\n    p.run()"
+
+    dir_name = FLAGS.tmp_dir + '/pipeline'
+    dir_list.append(dir_name)
+    write_and_zip_code(code, dir_name)
+
+    Logger_conf = dict(module)
+    Logger_conf['name'] = 'logger'
+    Logger_conf['type'] = 'Logger'
+    #code = generate_module_code(conf, Logger_conf, cur_id)
+    code = generate_module_code(conf, Logger_conf, cur_id)
+    #dir_name = FLAGS.tmp_dir + '/logger'
+    dir_name = FLAGS.tmp_dir + '/' + str(cur_id)
+    dir_list.append(dir_name)
+    write_and_zip_code(code, dir_name)
+
+    # Generate code for logger
+
+    if conf['pipeline']['mode'] == 'local':
+
+        # Run local mode
+        process_list = []
+
+        for dir_name in dir_list:
+            cmd = "python " + dir_name + ".zip -verbosity=" + FLAGS.verbosity
+            log.debug(cmd)
+            process_list.append(subprocess.Popen(cmd, shell=True))
+
+        # Wait for processes to finish
+        for process in process_list:
+            process.wait()
+
+        # Clean up
+        shutil.rmtree(FLAGS.tmp_dir)
+
+    elif conf['pipeline']['mode'] == 'docker':
+
+        # Start RabbitMQ and MongoDB
+        # rabbit = subprocess.Popen("docker run --rm -it --network='bridge' --name='rabbitmq' boom/docker rabbitmq-server", shell=True)
+        # mongo = subprocess.Popen("docker run --rm -it --network='bridge' --name='mongodb' boom/docker mongod --dbpath /data --bind_ip 127.0.0.1", shell=True)
+        # Wait for RabbitMQ and MongoDB to start
+        time.sleep(10)
+
+        # Start modules
+        #for dir_name in dir_list[:-1]:
+        #    cmd = "docker run --rm -it --network='bridge' --name='" + dir_name + "' -v \"$PWD\"/" + dir_name + ".zip:/code.zip -it boom/docker /usr/bin/python3 /code.zip -verbosity=" + FLAGS.verbosity
+        #    log.warn(cmd)
+            #process_list.append(subprocess.Popen(cmd, shell=True))
+
+        # Start pipeline
+        #cmd = "python3 " + dir_list[-1] + ".zip -verbosity=" + FLAGS.verbosity
+        #log.warn(cmd)
+        #process_list.append(subprocess.Popen(cmd, shell=True))
+
+        import time
+        import docker
+        import os
+
+        def start_container(client, cmd, name, volumes = None, network_mode = 'host'):
+            if (volumes == None):
+                return client.containers.run(
+                    'boom/docker',
+                    cmd,
+                    auto_remove = True,
+                    network_mode = network_mode,
+                    name = name,
+                    detach = True
+                    )
+            else:
+                return client.containers.run(
+                    'boom/docker',
+                    cmd,
+                    auto_remove = True,
+                    network_mode = network_mode,
+                    name = name,
+                    volumes = volumes,
+                    detach = True
+                    )
+            # end if
+
+        def print_log(container):
+            print(container.logs().decode())
+
+        client = docker.from_env()
+        rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
+        mongodb = start_container(client, 'mongod --dbpath /data --bind_ip 127.0.0.1', 'mongodb')
+        containers = []
+
+        for dir_name in dir_list:
+            containers.append(start_container(client, 'python3 /code.zip -verbosity= + FLAGS.verbosity', 'hahahaah', volumes = {os.path.abspath("tmp/0.zip"): {'bind': '/code.zip', 'mode': 'rw'}}))
+
+        # Wait
+        for container in containers:
+            container.wait()
+
+        # Shut down RabbitMQ and MongoDB container
+        if conf['pipeline']['mode'] == 'docker':
+            rabbitmq.kill()
+            mongodb.kill()
+
+
+
 
