@@ -9,6 +9,7 @@ import os
 import subprocess
 import shutil
 import pika
+import time
 import logging
 
 # Disable Pika's debugging messages
@@ -24,15 +25,13 @@ def rabbitmq_status(rabbitmq_host):
     except:
         return False
 
+
 ## The function to save code to files, copy extra modules and zip the code
 #  @param code The code to save
 #  @param dir_name The directory to save the code
 def write_and_zip_code(code, dir_name):
     # Make the dir
     os.mkdir(dir_name)
-
-    # Copy conf file to the module's dir
-    #shutil.copy2('conf.yaml', dir_name)
 
     # Copy libraries to the module's dir
     shutil.copytree('extra_modules', dir_name + '/extra_modules', ignore = shutil.ignore_patterns('*.pyc', '__pycache__', '.*'))
@@ -90,13 +89,17 @@ if __name__ == '__main__':
     with open(FLAGS.conf) as f:
         conf = yaml.load(f)
 
+    # If we need to start RabbitMQ.
+    rabbitmq_process = None
+    if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
+        rabbitmq_process = subprocess.Popen('rabbitmq-server', shell=True)
+        log.info('RabbitMQ server started')
+
+    # Make sure RabbitMQ server is ready.
+    time.sleep(5)
+
     # Initialze logger.
     boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
-
-    # The flag variable notes if we need to manage RabbitMQ.
-    manage_rabbit = rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False
-    if manage_rabbit == True:
-        pass
 
     log.warn('Loglevel: ' + FLAGS.verbosity)
     log.warn('Loaded configuration file from: ' + FLAGS.conf)
@@ -172,12 +175,16 @@ if __name__ == '__main__':
             log.debug(cmd)
             process_list.append(subprocess.Popen(cmd, shell=True))
 
-        # Wait for processes to finish
+        # Wait for processes to finish.
         for process in process_list:
             process.wait()
 
         # Clean up
         shutil.rmtree(FLAGS.tmp_dir)
+
+        # Kill RabbitMQ process if needed.
+        if rabbitmq_process != None:
+            subprocess.Popen('rabbitmqctl stop', shell=True).wait()
 
     elif conf['pipeline']['mode'] == 'docker':
 

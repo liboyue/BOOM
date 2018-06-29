@@ -15,6 +15,7 @@ logging.getLogger("pika").propagate = False
 class Module(object):
     """The base module class. Every actual module should be derived from this class."""
 
+    ## Initialization.
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
 
         ## The module's id.
@@ -61,7 +62,16 @@ class Module(object):
         self.connect()
 
 
-    def connect(self, prefetch_count = 1):
+    def __str__(self):
+        return json.dumps({
+            'name': self.name,
+            'id': self.id,
+            })
+
+
+    ## The function to (re)connect to RabbitMQ server.
+    def connect(self):
+
         ## The connection the module instance uses.
         self.connection = pika.BlockingConnection(
                 pika.ConnectionParameters(
@@ -76,16 +86,10 @@ class Module(object):
 
         ## The queue the module instance uses.
         self.queue = self.channel.queue_declare(queue=self.name)
-        self.channel.basic_qos(prefetch_count=prefetch_count)
+        self.channel.basic_qos(prefetch_count=1)
 
         # Connect to RabbitMQ
         self.channel.basic_consume(self.receive_job, queue=self.name)
-
-    def __str__(self):
-        return json.dumps({
-            'name': self.name,
-            'id': self.id,
-            })
 
 
     ## The function to handle incoming jobs.
