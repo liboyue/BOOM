@@ -1,8 +1,9 @@
 *cache*
 *build*
-[0-9]*
 docs
-*.json
 data
+[0-9]*
+*.json
 *.pyc
 MANIFEST
+*.png

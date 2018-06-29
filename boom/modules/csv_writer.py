@@ -1,7 +1,9 @@
-import glog as log 
-from ..log import set_logger
-import csv
 import os
+import csv
+
+import glog as log
+
+from ..log import set_logger
 from .module import Module
 
 
@@ -9,7 +11,8 @@ class CSVWriter(Module):
     "The CSVWriter class saves results to a csv file."
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super(CSVWriter, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+        super(CSVWriter, self).__init__(module_id, name, rabbitmq_host,
+                                        pipeline_conf, module_conf, **kwargs)
         # Initialze logger.
         set_logger(rabbitmq_host)
 

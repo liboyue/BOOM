@@ -1,12 +1,15 @@
-import json
-import bson
-import glog as log
 from datetime import datetime
+import json
+
+import glog as log
+
 
 class Job(object):
     """The information object class."""
-    
-    def __init__(self, job_id, input_uri, output_base, output_path, params = None, producer = None, consumer = None, processing_time = None):
+
+    def __init__(self, job_id, input_uri, output_base, output_path, params=None,
+                 producer=None, consumer=None, processing_time=None):
+
         ## The id of this job
         self.id = job_id
         ## The uri to the data file.
@@ -38,7 +41,7 @@ class Job(object):
         tmp = self.timestamp
         self.timestamp = datetime.utcnow()
         self.processing_time = self.timestamp - tmp
-        
+
 
     ## Serialize the object to a json formatted string.
     #  @return the serialized json string.
@@ -63,12 +66,12 @@ class Job(object):
     def from_json(json_str):
         data = json.loads(json_str)
         return Job(
-                data['id'],
-                data['input_uri'],
-                data['output_base'],
-                data['output_path'],
-                data['params'],
-                data['producer'],
-                data['consumer'],
-                data['processing_time'],
-                )
+            data['id'],
+            data['input_uri'],
+            data['output_base'],
+            data['output_path'],
+            data['params'],
+            data['producer'],
+            data['consumer'],
+            data['processing_time'],
+            )

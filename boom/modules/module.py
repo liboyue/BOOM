@@ -1,16 +1,17 @@
 import json
-import pika
-from ..log import set_logger
+import logging
+
 import glog as log
-#from ..log import get_logger
-from ..job import Job
-import yaml
+import pika
 from pymongo import MongoClient
 import gridfs
 
-import logging
+from ..log import set_logger
+from ..job import Job
+
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
+
 
 class Module(object):
     """The base module class. Every actual module should be derived from this class."""
@@ -34,8 +35,8 @@ class Module(object):
             self.mongodb_host = pipeline_conf['mongodb_host']
             ## The gridfs object used by the pipeline.
             self.fs = gridfs.GridFS(
-                    MongoClient(self.mongodb_host).boom
-                    )
+                MongoClient(self.mongodb_host).boom
+                )
 
         ## The module's input file path. None if not exists.
         self.input_file = module_conf['input_file'] if 'input_file' in module_conf else None
@@ -74,12 +75,12 @@ class Module(object):
 
         ## The connection the module instance uses.
         self.connection = pika.BlockingConnection(
-                pika.ConnectionParameters(
-                    host=self.rabbitmq_host,
-                    heartbeat_interval=0,
-                    blocked_connection_timeout=0
-                    )
+            pika.ConnectionParameters(
+                host=self.rabbitmq_host,
+                heartbeat_interval=0,
+                blocked_connection_timeout=0
                 )
+            )
 
         ## The channel the module instance uses.
         self.channel = self.connection.channel()
@@ -98,7 +99,7 @@ class Module(object):
         # Parse request body.
         data = json.loads(body.decode('ascii'))
         if data['type'] == 'job':
-            ch.basic_ack(delivery_tag = method.delivery_tag)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             self.channel.stop_consuming()
             job = Job.from_json(data['body'])
             log.info(self.name + ' received job: ' + str(job.id))
@@ -124,17 +125,17 @@ class Module(object):
             self.connect()
             # Send back resulting job.
             self.channel.basic_publish(
-                    exchange = 'job',
-                    routing_key = properties.reply_to,
-                    properties = pika.BasicProperties(),
-                    body = job.to_json()
-                    )
+                exchange='job',
+                routing_key=properties.reply_to,
+                properties=pika.BasicProperties(),
+                body=job.to_json()
+                )
 
             log.info(self.name + ' sent back job: ' + str(job.id))
 
         elif data['type'] == 'command':
             cmd = json.loads(data['body'])
-            ch.basic_ack(delivery_tag = method.delivery_tag)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
             if cmd['module'] == self.id or cmd['module'] == -1:
                 log.warn('Module ' + str(self.id) + ' ' + self.name + ' received command ' + cmd['command'])
 
@@ -156,7 +157,7 @@ class Module(object):
     #  @param job The job object to load.
     #  @return The data loaded.
     def load_job_data(self, job):
-        if self.use_mongodb == False or job.output_path == "":
+        if self.use_mongodb is False or job.output_path == "":
             path = job.output_base + '/' + job.output_path if job.output_path != "" else job.input_uri
             log.info('Load data from file ' + path)
             with open(path) as f:
@@ -175,7 +176,7 @@ class Module(object):
     #  @param data The data to be saved.
     #  @return the path to data.
     def save_job_data(self, job, data):
-        if self.use_mongodb == False:
+        if self.use_mongodb is False:
             path = job.output_base + '/' + job.output_path
             log.info('Save data to file ' + path)
             with open(path, 'w') as f:
@@ -183,10 +184,10 @@ class Module(object):
         else:
             log.info('Save data to MongoDB ' + job.output_path)
             self.fs.put(
-                    str.encode(self.dump_data(data)),
-                    filename = job.output_path,
-                    metadata = job.output_base
-                    )
+                str.encode(self.dump_data(data)),
+                filename=job.output_path,
+                metadata=job.output_base
+                )
         return job.output_path
 
 
@@ -206,7 +207,8 @@ class Module(object):
 
     ## The function to run the algorithm and process data objects.
     #  This function needs to be implemented in each class and should run the
-    #  core algorithm for the module, save intermediate results and return the resulting data object.
+    #  core algorithm for the module, save intermediate results and return the
+    #  resulting data object.
     #  @param job The Job object to be processed.
     #  @param data The data to be processed.
     #  @return The processed data object.
@@ -218,7 +220,7 @@ class Module(object):
     def run(self):
         log.info('Module ' + self.name + ' started, awaiting for requests.')
 
-        while self.is_finished == False:
+        while self.is_finished is False:
             self.channel.start_consuming()
 
 

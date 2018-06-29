@@ -1,11 +1,11 @@
 import logging
-import glog as log
 import sys
-import pika
 import json
-import logging
 
+import glog as log
+import pika
 import gflags as flags
+
 FLAGS = flags.FLAGS
 
 # Disable Pika's debugging messages.
@@ -36,6 +36,7 @@ class RabbitHandler(logging.Handler):
 
     ## The function to connect to RabbitMQ server.
     def connect(self):
+
         ## The connection the pipeline instance uses.
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
 
@@ -49,7 +50,7 @@ class RabbitHandler(logging.Handler):
         self.queue = self.channel.queue_declare(queue='logger').method.queue
 
         # Bind queue.
-        self.channel.queue_bind(exchange='job', queue = self.queue)
+        self.channel.queue_bind(exchange='job', queue=self.queue)
 
     ## Flush function.
     def flush(self):
@@ -58,12 +59,15 @@ class RabbitHandler(logging.Handler):
         try:
             if self.msg != '':
                 self.channel.basic_publish(
-                        exchange = 'job',
-                        routing_key = self.queue,
-                        properties = pika.BasicProperties(),
-                        body = json.dumps({'type': 'log', 'body': self.msg, 'exp_name': self.exp_name})
-                        )
-
+                    exchange='job',
+                    routing_key=self.queue,
+                    properties=pika.BasicProperties(),
+                    body=json.dumps({
+                        'type': 'log',
+                        'body': self.msg,
+                        'exp_name': self.exp_name
+                        })
+                    )
         finally:
             self.msg = ''
             self.release()
@@ -81,8 +85,7 @@ class RabbitHandler(logging.Handler):
 ## The function that updates the logger.
 #  @param rabbitmq_host The RabbitMQ host.
 #  @param exp_name The experiment's name.
-def set_logger(rabbitmq_host = None, exp_name = None):
+def set_logger(rabbitmq_host=None, exp_name=None):
     FLAGS(sys.argv)
     if rabbitmq_host != None:
         log.logger.addHandler(RabbitHandler(rabbitmq_host, exp_name))
-

@@ -36,16 +36,14 @@ class Parameter(object):
             for val in np.arange(
                     self.start,
                     self.end + self.step_size,
-                    self.step_size
-                    ):
+                    self.step_size):
                 yield val.astype(float)
 
         elif self.type == 'int':
             for val in range(
                     self.start,
                     self.end + self.step_size,
-                    self.step_size
-                    ):
+                    self.step_size):
                 yield val
 
         else:
@@ -58,4 +56,3 @@ class Parameter(object):
             return len(self.values)
         else:
             return (self.end - self.start) / self.step_size + 1
-

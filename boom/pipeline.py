@@ -1,20 +1,20 @@
-import yaml
-import json
-import boom
 import os
 import time
+import json
+import logging
+
 import pika
 import pydotplus
-import numpy as np
+import yaml
+import glog as log
 
 from .log import set_logger
-import glog as log
 from .job import Job
 from .parameter import Parameter
 
-import logging
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
+
 
 class Pipeline(object):
     "The pipeline class creates the pipeline, and manages execution."
@@ -38,7 +38,7 @@ class Pipeline(object):
         set_logger(self.conf['pipeline']['rabbitmq_host'])
 
         log.info('Loading configuration file from ' + conf_path)
-        log.info(json.dumps(self.conf, indent = 4))
+        log.info(json.dumps(self.conf, indent=4))
 
         ## Name of the pipeline.
         self.name = self.conf['pipeline']['name']
@@ -68,7 +68,9 @@ class Pipeline(object):
         self.rabbitmq_host = self.conf['pipeline']['rabbitmq_host']
 
         ## The connection the pipeline instance uses.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=self.rabbitmq_host)
+            )
 
         ## The channel the pipeline instance uses.
         self.channel = self.connection.channel()
@@ -81,14 +83,14 @@ class Pipeline(object):
 
         # Set parameters.
         self.channel.basic_consume(
-                self.on_call_back,
-                queue=self.callback_queue
-                )
+            self.on_call_back,
+            queue=self.callback_queue
+            )
 
         ## The queue to each module.
         self.module_queues = {
-                mod['name']: self.channel.queue_declare(queue=mod['name']).method.queue for mod in self.conf['modules']
-                }
+            mod['name']: self.channel.queue_declare(queue=mod['name']).method.queue for mod in self.conf['modules']
+            }
 
         self.module_queues['logger'] = self.channel.queue_declare(queue='logger').method.queue
 
@@ -108,7 +110,7 @@ class Pipeline(object):
 
 
     def __str__(self, module=None, indent=0):
-        return json.dumps(self.conf, indent = 4)
+        return json.dumps(self.conf, indent=4)
 
     ## The function to calculate total number of jobs.
     #  @param conf the pipeline's configuration.
@@ -125,7 +127,8 @@ class Pipeline(object):
 
     ## The function to plot the pipeline.
     def plot(self):
-        fig = pydotplus.Dot(graph_name=self.conf['pipeline']['name'], rankdir="LR", labelloc='b', labeljust='r', ranksep=1)
+        fig = pydotplus.Dot(graph_name=self.conf['pipeline']['name'], rankdir="LR",
+                            labelloc='b', labeljust='r', ranksep=1)
         fig.set_node_defaults(shape='square')
 
         modules = []
@@ -147,7 +150,7 @@ class Pipeline(object):
                     if param['type'] == 'collection':
                         label += 'param ' + param['name'] + ' values: [' + ','.join(param['values']) + ']\n'
                     else:
-                        label += 'param ' + param['name'] + ' range: [' + str(param['start']) + ', ' + str(param['step_size']) + ', ' + str(param['end']) + ']\n' 
+                        label += 'param ' + param['name'] + ' range: [' + str(param['start']) + ', ' + str(param['step_size']) + ', ' + str(param['end']) + ']\n'
 
             modules.append(
                 pydotplus.Node(
@@ -177,7 +180,7 @@ class Pipeline(object):
 
     ## The function to generate practical configurations for modules to run.
     #  @return Job objects.
-    def expand_params(self, mod_conf, i = 0):
+    def expand_params(self, mod_conf, i=0):
         if 'params' in mod_conf and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
                 for val in Parameter(mod_conf['params'][i]).get_values():
@@ -199,19 +202,20 @@ class Pipeline(object):
                 if module['name'] == job.consumer:
                     conf = module
                     break
+
             for params in self.expand_params(conf):
                 job.params = params
                 job.id = self.cur_job_id
                 self.cur_job_id += 1
                 self.send_job(job.consumer, job)
 
-            ch.basic_ack(delivery_tag = method.delivery_tag)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
         else:
             # Job compeleted
             log.info('Job ' + str(job.id) + ' completed.')
             #log.debug(job)
-            ch.basic_ack(delivery_tag = method.delivery_tag)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
             # When received the last job.
             if job.id == self.n_jobs - 1:
@@ -222,12 +226,12 @@ class Pipeline(object):
                     flag = False
                     #log.debug(self.job_status)
                     if len(self.job_status) > 0:
-                            flag = True
-                            time.sleep(1)
+                        flag = True
+                        time.sleep(1)
 
                 # Shut down the pipeline.
                 for module in self.conf['modules']:
-                    for i in range(module['instances']):
+                    for _ in range(module['instances']):
                         self.send_command(module['name'], -1, 'shutdown')
                 self.send_command('logger', -1, 'shutdown')
 
@@ -241,14 +245,12 @@ class Pipeline(object):
                         from pymongo import MongoClient
                         import gridfs
                         fs = gridfs.GridFS(
-                                MongoClient(self.mongodb_host).boom
-                                )
+                            MongoClient(self.mongodb_host).boom
+                            )
                         for grid_out in fs.find({"metadata": self.output_base}, no_cursor_timeout=True):
                             fs.delete(grid_out._id)
-
                     else:
                         os.system('rm ' + self.output_base + '/*.json')
-
                 quit()
 
 
@@ -257,13 +259,13 @@ class Pipeline(object):
     #  @param job The job object.
     def send_job(self, module_name, job):
         self.channel.basic_publish(
-                exchange = 'job',
-                routing_key = self.module_queues[module_name],
-                properties = pika.BasicProperties(
-                    reply_to = self.callback_queue
-                    ),
-                body = json.dumps({'type': 'job', 'body': job.to_json()})
-                )
+            exchange='job',
+            routing_key=self.module_queues[module_name],
+            properties=pika.BasicProperties(
+                reply_to=self.callback_queue
+                ),
+            body=json.dumps({'type': 'job', 'body': job.to_json()})
+            )
         self.job_status.add(job.id)
         log.info('Sent job ' + str(job.id) + ' to module ' + module_name)
 
@@ -273,13 +275,18 @@ class Pipeline(object):
     #  @param job The job object.
     def send_command(self, module_name, module_id, command):
         self.channel.basic_publish(
-                exchange = 'job',
-                routing_key = self.module_queues[module_name],
-                properties = pika.BasicProperties(
-                    reply_to = self.callback_queue
-                ),
-                body = json.dumps({'type': 'command', 'body': json.dumps({'module': module_id, 'command': command})})
-            )
+            exchange='job',
+            routing_key=self.module_queues[module_name],
+            properties=pika.BasicProperties(
+                reply_to=self.callback_queue
+            ),
+            body=json.dumps({
+                'type': 'command',
+                'body': json.dumps({
+                    'module': module_id,
+                    'command': command})
+                })
+        )
         log.info('Sent command ' + command + ' to module ' + module_name + ', ' + str(module_id))
 
 
@@ -289,17 +296,17 @@ class Pipeline(object):
         # Send the first job.
         for params in self.expand_params(self.conf['modules'][0]):
             self.send_job(
+                self.conf['modules'][0]['name'],
+                Job(
+                    self.cur_job_id,
+                    self.conf['modules'][0]['input_file'],
+                    self.output_base,
+                    '',
+                    params,
                     self.conf['modules'][0]['name'],
-                    Job(
-                        self.cur_job_id,
-                        self.conf['modules'][0]['input_file'],
-                        self.output_base,
-                        '',
-                        params,
-                        self.conf['modules'][0]['name'],
-                        self.conf['modules'][0]['output_module']
-                        )
+                    self.conf['modules'][0]['output_module']
                     )
+                )
             self.cur_job_id += 1
 
         # Start running
