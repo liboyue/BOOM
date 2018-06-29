@@ -1,10 +1,14 @@
 import glog as log
 from boom.modules import Module
+from boom.log import set_logger
 
 class Sample(Module):
 
     def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
         super(Sample, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+
+        # Initialize logger.
+        set_logger(rabbitmq_host)
 
     def process(self, job, data):
 
