@@ -25,4 +25,3 @@ with open('train_100.json', 'w') as f:
 with open('train_50.json', 'w') as f:
     data['questions'] = data['questions'][:50]
     json.dump(data, f)
-

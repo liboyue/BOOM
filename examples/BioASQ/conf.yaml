@@ -14,10 +14,10 @@ modules:
         processes: 4
         params:
             -   name: alpha
-                type: int
-                start: 50
-                end: 60
-                step_size: 10
+                type: float
+                start: 0
+                end: 1
+                step_size: 0.05
 
     -   name: orderer
         type: Orderer
@@ -32,7 +32,7 @@ modules:
 
     -   name: tiler
         type: Tiler
-        output_module: csv
+        output_module: rouge
         instances: 1
         params:
             -   name: word_limit
@@ -40,6 +40,11 @@ modules:
                 start: 50
                 end: 200
                 step_size: 25
+
+    -   name: rouge
+        type: Rouge
+        output_module: csv
+        instances: 1
 
     -   name: csv
         type: CSVWriter

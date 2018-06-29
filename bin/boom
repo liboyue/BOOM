@@ -58,7 +58,7 @@ def write_and_zip_code(code, dir_name):
     shutil.make_archive(dir_name, 'zip', dir_name)
 
 
-def generate_module_code(conf, module, cur_id):
+def generate_module_code(conf, module, cur_id, exp_name):
 
     if module['type'] == 'CSVWriter':
         code = "import sys\nimport gflags\nfrom boom.modules import CSVWriter\n"
@@ -69,7 +69,7 @@ def generate_module_code(conf, module, cur_id):
 
     code += "if __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n" \
         + '    ' + module['type'] + "(" \
-        + str(cur_id) + ", '" + module['name'] + "', '127.0.0.1', " \
+        + str(cur_id) + ", '" + module['name'] + "', '" + exp_name + "', '127.0.0.1', " \
         + str(conf['pipeline']) \
         + ',' + str(module) \
         + ").run()\n"
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     # First, set the name of the experiment using current time.
     exp_name = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
-    log.warn('The experiment name is :' + exp_name)
+    log.warn('The experiment name is: ' + exp_name)
 
     # Parse args.
     FLAGS = gflags.FLAGS
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         for i in range(int(module['instances'])):
 
             # Generate code
-            code = generate_module_code(conf, module, cur_id)
+            code = generate_module_code(conf, module, cur_id, exp_name)
 
             # Save and zip code
             dir_name = FLAGS.tmp_dir + '/' + str(cur_id)
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     Logger_conf['name'] = 'logger'
     Logger_conf['type'] = 'Logger'
     #code = generate_module_code(conf, Logger_conf, cur_id)
-    code = generate_module_code(conf, Logger_conf, cur_id)
+    code = generate_module_code(conf, Logger_conf, cur_id, exp_name)
     #dir_name = FLAGS.tmp_dir + '/logger'
     dir_name = FLAGS.tmp_dir + '/' + str(cur_id)
     dir_list.append(dir_name)

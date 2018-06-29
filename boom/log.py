@@ -64,8 +64,7 @@ class RabbitHandler(logging.Handler):
                     properties=pika.BasicProperties(),
                     body=json.dumps({
                         'type': 'log',
-                        'body': self.msg,
-                        'exp_name': self.exp_name
+                        'body': self.msg
                         })
                     )
         finally:

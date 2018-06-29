@@ -35,13 +35,16 @@ class Pipeline(object):
             self.conf = yaml.load(f)
 
         # Initialize logger.
-        set_logger(self.conf['pipeline']['rabbitmq_host'])
+        set_logger(self.conf['pipeline']['rabbitmq_host'], exp_name)
 
         log.info('Loading configuration file from ' + conf_path)
         log.info(json.dumps(self.conf, indent=4))
 
         ## Name of the pipeline.
         self.name = self.conf['pipeline']['name']
+
+        ## Name of the experiment.
+        self.exp_name = exp_name
 
         ## Clean up or not after running.
         self.clean_up = self.conf['pipeline']['clean_up'] if 'clean_up' in self.conf['pipeline'] else False
@@ -102,7 +105,7 @@ class Pipeline(object):
 
 
         ## The name of dir or database to save results.
-        self.output_base = exp_name
+        self.output_base = self.exp_name
         time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
 
         # Create data dir

@@ -4,8 +4,8 @@ from rouge import Rouge as RougeLib
 
 class Rouge(Module):
 
-    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super(Rouge, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+        super(Rouge, self).__init__(module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.evaluator = RougeLib()
 
     def process(self, job, data):

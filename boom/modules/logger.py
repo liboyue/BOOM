@@ -7,8 +7,8 @@ from .module import Module
 class Logger(Module):
     "The Logger module saves logs sent to it to a file."
 
-    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super(Logger, self).__init__(module_id, name, rabbitmq_host,
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+        super(Logger, self).__init__(module_id, name, exp_name, rabbitmq_host,
                                      pipeline_conf, module_conf, **kwargs)
         ## The buffer for logs.
         self.buf = []
@@ -44,12 +44,15 @@ class Logger(Module):
                     self.cleanup()
 
     ## The function to save files.
+    #  @param exp_name The name of an experiment.
     def save(self):
 
-        with open('log.txt', 'a') as f:
-            f.write('\n'.join(self.buf) + '\n')
+        if len(self.buf) > 0:
+            with open(self.exp_name + '/log.txt', 'a') as f:
+                f.write('\n'.join(self.buf) + '\n')
 
-        self.buf = []
+            # Clean the buf.
+            self.buf = []
 
     ## Clean up before exiting.
     def cleanup(self):
@@ -59,8 +62,8 @@ class Logger(Module):
         while self.queue.method.message_count > 0:
             self.channel.start_consuming()
 
-        if len(self.buf) > 0:
-            self.save()
+        self.save()
+
 
 if __name__ == '__main__':
     pass

@@ -17,7 +17,7 @@ class Module(object):
     """The base module class. Every actual module should be derived from this class."""
 
     ## Initialization.
-    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
 
         ## The module's id.
         self.id = module_id
@@ -25,8 +25,11 @@ class Module(object):
         ## The module's name.
         self.name = name
 
+        ## The experiment's name.
+        self.exp_name = exp_name
+
         # Initialize logger.
-        set_logger(rabbitmq_host)
+        set_logger(rabbitmq_host, self.exp_name)
 
         ## The module's input file path. None if not exists.
         self.use_mongodb = pipeline_conf['use_mongodb'] if 'use_mongodb' in pipeline_conf else False

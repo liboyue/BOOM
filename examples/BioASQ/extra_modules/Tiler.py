@@ -4,8 +4,8 @@ from .bioasq.Concatenation import Concatenation
 
 class Tiler(Module):
 
-    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super(Tiler, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+        super(Tiler, self).__init__(module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.concatenator = Concatenation()
 
     def process(self, job, data):

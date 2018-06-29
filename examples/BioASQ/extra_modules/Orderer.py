@@ -6,8 +6,8 @@ from .bioasq.KMeansOrderer import KMeansOrderer
 
 class Orderer(Module):
 
-    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super(Orderer, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+        super(Orderer, self).__init__(module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.orderer = KMeansOrderer()
 
     def process(self, job, data):

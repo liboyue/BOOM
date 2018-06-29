@@ -16,8 +16,8 @@ def multi_process_helper(args):
 
 class CoreMMR(Module):
 
-    def __init__(self, module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
-        super(CoreMMR, self).__init__(module_id, name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+        super(CoreMMR, self).__init__(module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs)
         self.processes = module_conf['processes'] if 'processes' in module_conf else 1
         self.pool = Pool(processes=self.processes)
 
