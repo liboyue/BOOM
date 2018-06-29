@@ -21,9 +21,9 @@ class Pipeline(object):
 
     ##  Initialization.
     #  @param conf_path The path to the configuration file.
-    def __init__(self, conf_path):
+    #  @param exp_name The name of the experiment.
+    def __init__(self, conf_path, exp_name):
 
- 
         ## The internal job ID counter. It is the id of next job to use.
         self.cur_job_id = 0
 
@@ -100,7 +100,8 @@ class Pipeline(object):
 
 
         ## The name of dir or database to save results.
-        self.output_base = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
+        self.output_base = exp_name
+        time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
 
         # Create data dir
         os.mkdir(self.output_base)

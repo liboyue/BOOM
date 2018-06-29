@@ -7,6 +7,7 @@ import boom
 import glog as log
 import os
 import subprocess
+import pymongo
 import shutil
 import pika
 import time
@@ -25,6 +26,19 @@ def rabbitmq_status(rabbitmq_host):
     except:
         return False
 
+## The function to test if MongoDB server is running
+#  @param mongodb_host The host of MongoDB server
+#  @return True if MongoDB is running, False otherwise
+def mongodb_status(mongodb_host):
+    try:
+        client = pymongo.MongoClient(mongodb_host, serverSelectionTimeoutMS=1000)
+        client.server_info()
+        return True
+    except pymongo.errors.ServerSelectionTimeoutError as err:
+        return False
+
+def f():
+    print(mongodb_status('localhost'))
 
 ## The function to save code to files, copy extra modules and zip the code
 #  @param code The code to save
@@ -67,6 +81,35 @@ def generate_module_code(conf, module, cur_id):
     return code
 
 
+## The function to start a boon/docker container and execute a command.
+#  @param client A connected cleint object.
+#  @param cmd The command the new container should run.
+#  @param name The name of the new container.
+#  @param volumes Volumes the new container needs to mount.
+#  @param network_mode The network mode the new container uses.
+#  @return a container object.
+def start_container(client, cmd, name, volumes = None, network_mode = 'host'):
+    if (volumes == None):
+        return client.containers.run(
+            'boom/docker',
+            cmd,
+            auto_remove = True,
+            network_mode = network_mode,
+            name = name,
+            detach = True
+            )
+    else:
+        return client.containers.run(
+            'boom/docker',
+            cmd,
+            auto_remove = True,
+            network_mode = network_mode,
+            name = name,
+            volumes = volumes,
+            detach = True
+            )
+    # end if
+
 if __name__ == '__main__':
 
     gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
@@ -75,6 +118,10 @@ if __name__ == '__main__':
     gflags.DEFINE_boolean('profile', False, 'profile each module')
     gflags.DEFINE_boolean('help', False, 'print the help message')
     gflags.DEFINE_boolean('info', False, 'print details about the pipeline, including how many modules, how many jobs, etc.')
+
+    # First, set the name of the experiment using current time.
+    exp_name = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
+    log.warn('The experiment name is :' + exp_name)
 
     # Parse args.
     FLAGS = gflags.FLAGS
@@ -89,13 +136,18 @@ if __name__ == '__main__':
     with open(FLAGS.conf) as f:
         conf = yaml.load(f)
 
-    # If we need to start RabbitMQ.
-    rabbitmq_process = None
-    if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
-        rabbitmq_process = subprocess.Popen('rabbitmq-server', shell=True)
-        log.info('RabbitMQ server started')
+    # If we need to start RabbitMQ in local mode.
+    rabbitmq = None
+    if conf['pipeline']['mode'] == 'local':
+        if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
+            rabbitmq = subprocess.Popen('rabbitmq-server', shell=True)
+            log.info('RabbitMQ server started')
+    elif conf['pipeline']['mode'] == 'docker':
+        rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
+        # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
+        conf['pipeline']['rabbitmq_host'] = '127.0.0.1' # Using host mode for the network
 
-    # Make sure RabbitMQ server is ready.
+    # Make sure RabbitMQ server is up.
     time.sleep(5)
 
     # Initialze logger.
@@ -144,10 +196,11 @@ if __name__ == '__main__':
     # end for
 
     # Generate code for pipeline
+    code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p = boom.Pipeline('" + FLAGS.conf + "', '" + exp_name + "')\n"
     if FLAGS.plot:
-        code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p=boom.Pipeline('" + FLAGS.conf + "')\n    p.plot()\n    p.run()"
+        code += "    p.plot()\n    p.run()"
     else:
-        code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p=boom.Pipeline('" + FLAGS.conf + "')\n    p.run()"
+        code += "    p.run()"
 
     dir_name = FLAGS.tmp_dir + '/pipeline'
     dir_list.append(dir_name)
@@ -183,7 +236,7 @@ if __name__ == '__main__':
         shutil.rmtree(FLAGS.tmp_dir)
 
         # Kill RabbitMQ process if needed.
-        if rabbitmq_process != None:
+        if rabbitmq != None:
             subprocess.Popen('rabbitmqctl stop', shell=True).wait()
 
     elif conf['pipeline']['mode'] == 'docker':
@@ -209,33 +262,11 @@ if __name__ == '__main__':
         import docker
         import os
 
-        def start_container(client, cmd, name, volumes = None, network_mode = 'host'):
-            if (volumes == None):
-                return client.containers.run(
-                    'boom/docker',
-                    cmd,
-                    auto_remove = True,
-                    network_mode = network_mode,
-                    name = name,
-                    detach = True
-                    )
-            else:
-                return client.containers.run(
-                    'boom/docker',
-                    cmd,
-                    auto_remove = True,
-                    network_mode = network_mode,
-                    name = name,
-                    volumes = volumes,
-                    detach = True
-                    )
-            # end if
 
         def print_log(container):
             print(container.logs().decode())
 
         client = docker.from_env()
-        rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
         mongodb = start_container(client, 'mongod --dbpath /data --bind_ip 127.0.0.1', 'mongodb')
         containers = []
 
