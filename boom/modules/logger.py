@@ -13,6 +13,9 @@ class Logger(Module):
         ## The buffer for logs.
         self.buf = []
 
+        ## The id of the log file in MongoDB.
+        self.file_id = None
+
     ## The function to handle incoming logs.
     def receive_job(self, ch, method, properties, body):
 
@@ -48,8 +51,27 @@ class Logger(Module):
     def save(self):
 
         if len(self.buf) > 0:
-            with open(self.exp_name + '/log.txt', 'a') as f:
-                f.write('\n'.join(self.buf) + '\n')
+            if self.use_mongodb is False:
+                with open(self.exp_name + '/log.txt', 'a') as f:
+                    f.write('\n'.join(self.buf) + '\n')
+            else:
+                # Read existing log.
+                tmp = ''
+                if self.file_id != None:
+                    # Read the original log.
+                    tmp = self.fs.get(self.file_id) \
+                            .read() \
+                            .decode()
+
+                    # Delete the original log.
+                    self.fs.delete(self.file_id)
+
+                # Append new logs and save.
+                self.file_id = self.fs.put(
+                    str.encode(tmp + '\n'.join(self.buf) + '\n'),
+                    filename='log.txt',
+                    metadata=self.exp_name
+                    )
 
             # Clean the buf.
             self.buf = []
@@ -63,6 +85,12 @@ class Logger(Module):
             self.channel.start_consuming()
 
         self.save()
+
+        with open(self.exp_name + '/log.txt', 'w') as f:
+            f.write(self.fs.get(self.file_id) \
+                        .read() \
+                        .decode()
+                        )
 
 
 if __name__ == '__main__':

@@ -37,8 +37,6 @@ def mongodb_status(mongodb_host):
     except pymongo.errors.ServerSelectionTimeoutError as err:
         return False
 
-def f():
-    print(mongodb_status('localhost'))
 
 ## The function to save code to files, copy extra modules and zip the code
 #  @param code The code to save
@@ -136,7 +134,7 @@ if __name__ == '__main__':
     with open(FLAGS.conf) as f:
         conf = yaml.load(f)
 
-    # If we need to start RabbitMQ in local mode.
+    # If we need to start RabbitMQ.
     rabbitmq = None
     if conf['pipeline']['mode'] == 'local':
         if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
@@ -147,7 +145,22 @@ if __name__ == '__main__':
         # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
         conf['pipeline']['rabbitmq_host'] = '127.0.0.1' # Using host mode for the network
 
-    # Make sure RabbitMQ server is up.
+    # If we need to start MongoDB.
+    mongodb = None
+    if conf['pipeline']['mode'] == 'local':
+        if mongodb_status(conf['pipeline']['rabbitmq_host']) == False:
+            # Create data foder if needed.
+            if os.path.exists('./data') is False:
+                os.mkdir('data')
+
+            mongodb = subprocess.Popen('mongod --dbpath ./data --bind_ip 127.0.0.1', shell=True)
+            log.info('MongoDB server started')
+    elif conf['pipeline']['mode'] == 'docker':
+        mongodb = start_container(client, 'mongod --dbpath /data --bind_ip 127.0.0.1', 'mongodb')
+        # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
+        conf['pipeline']['mongodb_host'] = '127.0.0.1' # Using host mode for the network
+
+    # Make sure RabbitMQ server and MongoDB server are up.
     time.sleep(5)
 
     # Initialze logger.
@@ -239,6 +252,10 @@ if __name__ == '__main__':
         if rabbitmq != None:
             subprocess.Popen('rabbitmqctl stop', shell=True).wait()
 
+        # Kill MongoDB process if needed.
+        if mongodb != None:
+            mongodb.kill()
+
     elif conf['pipeline']['mode'] == 'docker':
 
         # Start RabbitMQ and MongoDB
@@ -267,7 +284,6 @@ if __name__ == '__main__':
             print(container.logs().decode())
 
         client = docker.from_env()
-        mongodb = start_container(client, 'mongod --dbpath /data --bind_ip 127.0.0.1', 'mongodb')
         containers = []
 
         for dir_name in dir_list:

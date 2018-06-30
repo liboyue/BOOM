@@ -3,7 +3,7 @@ import logging
 
 import glog as log
 import pika
-from pymongo import MongoClient
+import pymongo
 import gridfs
 
 from ..log import set_logger
@@ -38,7 +38,7 @@ class Module(object):
             self.mongodb_host = pipeline_conf['mongodb_host']
             ## The gridfs object used by the pipeline.
             self.fs = gridfs.GridFS(
-                MongoClient(self.mongodb_host).boom
+                pymongo.MongoClient(self.mongodb_host).boom
                 )
 
         ## The module's input file path. None if not exists.
