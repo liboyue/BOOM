@@ -5,8 +5,9 @@ import logging
 
 import pika
 import pydotplus
-import yaml
 import glog as log
+import gridfs
+import pymongo
 
 from .log import set_logger
 from .job import Job
@@ -20,24 +21,20 @@ class Pipeline(object):
     "The pipeline class creates the pipeline, and manages execution."
 
     ##  Initialization.
-    #  @param conf_path The path to the configuration file.
+    #  @param conf The Json serialized configuration file.
     #  @param exp_name The name of the experiment.
-    def __init__(self, conf_path, exp_name):
+    def __init__(self, conf, exp_name):
 
         ## The internal job ID counter. It is the id of next job to use.
         self.cur_job_id = 0
 
-        ## The path to the configuration file.
-        self.conf_path = conf_path
-
-        with open(conf_path) as f:
-            ## Content of the configuration file.
-            self.conf = yaml.load(f)
+        ## Content of the configuration file.
+        self.conf = json.loads(conf)
 
         # Initialize logger.
         set_logger(self.conf['pipeline']['rabbitmq_host'], exp_name)
 
-        log.info('Loading configuration file from ' + conf_path)
+        log.info('Loading configuration file')
         log.info(json.dumps(self.conf, indent=4))
 
         ## Name of the pipeline.
@@ -122,7 +119,7 @@ class Pipeline(object):
         total = 0
         level = 1
         for mod in conf['modules']:
-            if 'params' in mod:
+            if 'params' in mod and mod['params'] != None:
                 for param in mod['params']:
                     level *= Parameter(param).get_n_choices()
             total += level
@@ -184,7 +181,7 @@ class Pipeline(object):
     ## The function to generate practical configurations for modules to run.
     #  @return Job objects.
     def expand_params(self, mod_conf, i=0):
-        if 'params' in mod_conf and i < len(mod_conf['params']):
+        if 'params' in mod_conf and mod_conf['params'] != None and i < len(mod_conf['params']):
             for tmp in self.expand_params(mod_conf, i+1):
                 for val in Parameter(mod_conf['params'][i]).get_values():
                     tmp[mod_conf['params'][i]['name']] = val
@@ -245,10 +242,8 @@ class Pipeline(object):
                 if self.clean_up:
                     log.warn('Cleaning up intermediate files')
                     if self.use_mongodb:
-                        from pymongo import MongoClient
-                        import gridfs
                         fs = gridfs.GridFS(
-                            MongoClient(self.mongodb_host).boom
+                            pymongo.MongoClient(self.mongodb_host).boom
                             )
                         for grid_out in fs.find({"metadata": self.output_base}, no_cursor_timeout=True):
                             fs.delete(grid_out._id)
@@ -293,8 +288,22 @@ class Pipeline(object):
         log.info('Sent command ' + command + ' to module ' + module_name + ', ' + str(module_id))
 
 
+    ## The function to move data to MongoDB.
+    def move_data_to_mongodb(self):
+        gridfs.GridFS(pymongo.MongoClient(self.conf['pipeline']['mongodb_host']).boom) \
+                .put(
+                    str.encode(open(self.conf['modules'][0]['input_file']).read()),
+                    filename=self.conf['modules'][0]['input_file'],
+                    metadata=self.exp_name
+                    )
+        log.info('Saved data to MongoDB')
+
+
     ## The function to run the pipeline
     def run(self):
+
+        if self.conf['pipeline']['use_mongodb'] is True:
+            self.move_data_to_mongodb()
 
         # Send the first job.
         for params in self.expand_params(self.conf['modules'][0]):
@@ -304,7 +313,7 @@ class Pipeline(object):
                     self.cur_job_id,
                     self.conf['modules'][0]['input_file'],
                     self.output_base,
-                    '',
+                    self.conf['modules'][0]['input_file'],
                     params,
                     self.conf['modules'][0]['name'],
                     self.conf['modules'][0]['output_module']

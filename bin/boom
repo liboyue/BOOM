@@ -1,27 +1,40 @@
 #!/usr/bin/env python
 # coding=utf-8
+import logging
+import os
+import sys
+import subprocess
+import shutil
+import json
+import time
+
 import yaml
 import gflags
-import sys
-import boom
 import glog as log
-import os
-import subprocess
+#import gridfs
 import pymongo
-import shutil
 import pika
-import time
-import logging
+import docker
+import boom
 
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
+
+def execute_cmd(cmd):
+    if FLAGS.debug == True:
+        log.info('Execute ' + ' '.join(cmd))
+        return None
+    else:
+        log.debug('Execute ' + ' '.join(cmd))
+        return subprocess.Popen(cmd)
+
 
 ## The function to test if RabbitMQ is running
 #  @param rabbitmq_host The host of RabbitMQ server
 #  @return True if RabbitMQ is running, False otherwise
 def rabbitmq_status(rabbitmq_host):
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+        pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
         return True
     except:
         return False
@@ -31,10 +44,9 @@ def rabbitmq_status(rabbitmq_host):
 #  @return True if MongoDB is running, False otherwise
 def mongodb_status(mongodb_host):
     try:
-        client = pymongo.MongoClient(mongodb_host, serverSelectionTimeoutMS=1000)
-        client.server_info()
+        pymongo.MongoClient(mongodb_host, serverSelectionTimeoutMS=1000).server_info()
         return True
-    except pymongo.errors.ServerSelectionTimeoutError as err:
+    except pymongo.errors.ServerSelectionTimeoutError:
         return False
 
 
@@ -46,7 +58,7 @@ def write_and_zip_code(code, dir_name):
     os.mkdir(dir_name)
 
     # Copy libraries to the module's dir
-    shutil.copytree('extra_modules', dir_name + '/extra_modules', ignore = shutil.ignore_patterns('*.pyc', '__pycache__', '.*'))
+    shutil.copytree('extra_modules', dir_name + '/extra_modules', ignore=shutil.ignore_patterns('*.pyc', '__pycache__', '.*'))
 
     # Write executable code
     with open(dir_name + '/__main__.py', 'w') as f:
@@ -72,7 +84,7 @@ def generate_module_code(conf, module, cur_id, exp_name):
         + ',' + str(module) \
         + ").run()\n"
 
-    if FLAGS.profile :
+    if FLAGS.profile:
         #log.warn("Profile module " + module['name'])
         code = "import cProfile, pstats, io\npr = cProfile.Profile()\npr.enable()\n" + code + "    pr.disable()\n    s = io.StringIO()\n    pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats()\n    with open('profile_" + module['name']+ ".txt', 'w') as f:\n        f.write(s.getvalue())\n"
 
@@ -86,27 +98,39 @@ def generate_module_code(conf, module, cur_id, exp_name):
 #  @param volumes Volumes the new container needs to mount.
 #  @param network_mode The network mode the new container uses.
 #  @return a container object.
-def start_container(client, cmd, name, volumes = None, network_mode = 'host'):
-    if (volumes == None):
-        return client.containers.run(
-            'boom/docker',
-            cmd,
-            auto_remove = True,
-            network_mode = network_mode,
-            name = name,
-            detach = True
-            )
+def start_container(client, cmd, name, volumes=None, network_mode='host'):
+    if FLAGS.debug == False:
+        if (volumes == None):
+            return client.containers.run(
+                'boom/docker',
+                cmd,
+                auto_remove=True,
+                network_mode=network_mode,
+                name=name,
+                detach=True
+                )
+        else:
+            return client.containers.run(
+                'boom/docker',
+                cmd,
+                auto_remove=True,
+                network_mode=network_mode,
+                name=name,
+                volumes=volumes,
+                detach=True
+                )
+        # end if
     else:
-        return client.containers.run(
-            'boom/docker',
-            cmd,
-            auto_remove = True,
-            network_mode = network_mode,
-            name = name,
-            volumes = volumes,
-            detach = True
-            )
-    # end if
+        def _escape_path(s):
+            return s.replace(' ', '\\ ').replace('&', '\\&')
+
+        v = ''
+        if volumes != None:
+            v = ' -v ' + ' -v '.join([_escape_path(local_dir) + ':' + _escape_path(volumes[local_dir]['bind']) for local_dir in volumes])
+
+        log.info("Start container with command: docker run --rm -it --network='" + network_mode + "' --name='" + name + "'" + v + ' boom/docker ' + cmd)
+
+        return None
 
 if __name__ == '__main__':
 
@@ -116,10 +140,7 @@ if __name__ == '__main__':
     gflags.DEFINE_boolean('profile', False, 'profile each module')
     gflags.DEFINE_boolean('help', False, 'print the help message')
     gflags.DEFINE_boolean('info', False, 'print details about the pipeline, including how many modules, how many jobs, etc.')
-
-    # First, set the name of the experiment using current time.
-    exp_name = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
-    log.warn('The experiment name is: ' + exp_name)
+    gflags.DEFINE_boolean('debug', False, 'debugging mode for the pipeline. Prints all command without execution.')
 
     # Parse args.
     FLAGS = gflags.FLAGS
@@ -134,12 +155,22 @@ if __name__ == '__main__':
     with open(FLAGS.conf) as f:
         conf = yaml.load(f)
 
+    # Set the name of the experiment using current time.
+    exp_name = time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
+    log.warn('The experiment name is: ' + exp_name)
+
+    # If we want to use Docker.
+    client = docker.from_env() if conf['pipeline']['mode'] == 'docker' else None
+
     # If we need to start RabbitMQ.
     rabbitmq = None
     if conf['pipeline']['mode'] == 'local':
         if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
-            rabbitmq = subprocess.Popen('rabbitmq-server', shell=True)
-            log.info('RabbitMQ server started')
+            rabbitmq = execute_cmd(['rabbitmq-server'])
+            log.info('Starting RabbitMQ server')
+        else:
+            log.info('RabbitMQ is running')
+
     elif conf['pipeline']['mode'] == 'docker':
         rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
         # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
@@ -147,24 +178,29 @@ if __name__ == '__main__':
 
     # If we need to start MongoDB.
     mongodb = None
-    if conf['pipeline']['mode'] == 'local':
-        if mongodb_status(conf['pipeline']['rabbitmq_host']) == False:
-            # Create data foder if needed.
-            if os.path.exists('./data') is False:
-                os.mkdir('data')
+    if conf['pipeline']['mode'] != 'docker' and conf['pipeline']['use_mongodb'] == True:
+        if conf['pipeline']['mode'] == 'local':
+            if mongodb_status(conf['pipeline']['rabbitmq_host']) == False:
+                # Create data foder if needed.
+                if os.path.isdir('./data') is False:
+                    os.mkdir('data')
 
-            mongodb = subprocess.Popen('mongod --dbpath ./data --bind_ip 127.0.0.1', shell=True)
-            log.info('MongoDB server started')
+                mongodb = execute_cmd(['mongod', '--dbpath', './data', '--bind_ip', '127.0.0.1'])
+                log.info('Starting MongoDB server')
+
     elif conf['pipeline']['mode'] == 'docker':
-        mongodb = start_container(client, 'mongod --dbpath /data --bind_ip 127.0.0.1', 'mongodb')
-        # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
+        mongodb = start_container(client, 'mongod --dbpath /data --bind_ip 127.0.0.1', 'mongodb',
+                                  volumes={os.path.abspath('data'): {'bind': '/data', 'mode': 'rw'}})
         conf['pipeline']['mongodb_host'] = '127.0.0.1' # Using host mode for the network
+        conf['pipeline']['use_mongodb'] = True # Using host mode for the network
 
-    # Make sure RabbitMQ server and MongoDB server are up.
-    time.sleep(5)
+    # Make sure RabbitMQ server and MongoDB server are up if needed.
+    if rabbitmq != None or mongodb != None:
+        time.sleep(5)
 
     # Initialze logger.
-    boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
+    #if FLAGS.debug == False:
+        #boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
 
     log.warn('Loglevel: ' + FLAGS.verbosity)
     log.warn('Loaded configuration file from: ' + FLAGS.conf)
@@ -188,7 +224,7 @@ if __name__ == '__main__':
 
     for module in conf['modules']:
 
-        module['params'] = None
+        # module['params'] = None
 
         # Repeat number of instances of each module
         for i in range(int(module['instances'])):
@@ -209,16 +245,17 @@ if __name__ == '__main__':
     # end for
 
     # Generate code for pipeline
-    code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p = boom.Pipeline('" + FLAGS.conf + "', '" + exp_name + "')\n"
+    code = "import sys\nimport gflags\nimport boom\nif __name__ == '__main__':\n    FLAGS = gflags.FLAGS\n    FLAGS(sys.argv)\n    p = boom.Pipeline('" + json.dumps(conf) + "', '" + exp_name + "')\n"
     if FLAGS.plot:
         code += "    p.plot()\n    p.run()"
     else:
         code += "    p.run()"
 
-    dir_name = FLAGS.tmp_dir + '/pipeline'
-    dir_list.append(dir_name)
-    write_and_zip_code(code, dir_name)
+    pipeline_dir = FLAGS.tmp_dir + '/pipeline'
+    # dir_list.append(dir_name)
+    write_and_zip_code(code, pipeline_dir)
 
+    # Generate code for logger
     Logger_conf = dict(module)
     Logger_conf['name'] = 'logger'
     Logger_conf['type'] = 'Logger'
@@ -229,28 +266,29 @@ if __name__ == '__main__':
     dir_list.append(dir_name)
     write_and_zip_code(code, dir_name)
 
-    # Generate code for logger
-
+    # Run.
     if conf['pipeline']['mode'] == 'local':
 
         # Run local mode
         process_list = []
 
-        for dir_name in dir_list:
-            cmd = "python " + dir_name + ".zip -verbosity=" + FLAGS.verbosity
+        for dir_name in dir_list + [pipeline_dir]:
+            cmd = ['python', dir_name + '.zip', '--verbosity=' + FLAGS.verbosity]
             log.debug(cmd)
-            process_list.append(subprocess.Popen(cmd, shell=True))
+            process_list.append(execute_cmd(cmd))
 
         # Wait for processes to finish.
-        for process in process_list:
-            process.wait()
+        if FLAGS.debug == False:
+            for process in process_list:
+                process.wait()
 
         # Clean up
-        shutil.rmtree(FLAGS.tmp_dir)
+        if FLAGS.debug == False:
+            shutil.rmtree(FLAGS.tmp_dir)
 
         # Kill RabbitMQ process if needed.
         if rabbitmq != None:
-            subprocess.Popen('rabbitmqctl stop', shell=True).wait()
+            execute_cmd(['rabbitmqctl', 'stop']).wait()
 
         # Kill MongoDB process if needed.
         if mongodb != None:
@@ -258,46 +296,38 @@ if __name__ == '__main__':
 
     elif conf['pipeline']['mode'] == 'docker':
 
-        # Start RabbitMQ and MongoDB
-        # rabbit = subprocess.Popen("docker run --rm -it --network='bridge' --name='rabbitmq' boom/docker rabbitmq-server", shell=True)
-        # mongo = subprocess.Popen("docker run --rm -it --network='bridge' --name='mongodb' boom/docker mongod --dbpath /data --bind_ip 127.0.0.1", shell=True)
-        # Wait for RabbitMQ and MongoDB to start
-        time.sleep(10)
-
         # Start modules
         #for dir_name in dir_list[:-1]:
-        #    cmd = "docker run --rm -it --network='bridge' --name='" + dir_name + "' -v \"$PWD\"/" + dir_name + ".zip:/code.zip -it boom/docker /usr/bin/python3 /code.zip -verbosity=" + FLAGS.verbosity
-        #    log.warn(cmd)
-            #process_list.append(subprocess.Popen(cmd, shell=True))
+        #    cmd = "docker run --rm -it --network='bridge' --name='" + dir_name + "' -v \"$PWD\"/" + dir_name + ".zip:/code.zip -it boom/docker /usr/bin/python3 /code.zip --verbosity=" + FLAGS.verbosity
+        #    process_list.append(execute_cmd(cmd))
 
         # Start pipeline
-        #cmd = "python3 " + dir_list[-1] + ".zip -verbosity=" + FLAGS.verbosity
-        #log.warn(cmd)
-        #process_list.append(subprocess.Popen(cmd, shell=True))
+        #cmd = ['python3', dir_list[-1] + '.zip', '--verbosity=' + FLAGS.verbosity]
+        #process_list.append(execute_cmd(cmd))
 
-        import time
-        import docker
-        import os
 
 
         def print_log(container):
             print(container.logs().decode())
 
-        client = docker.from_env()
         containers = []
 
         for dir_name in dir_list:
-            containers.append(start_container(client, 'python3 /code.zip -verbosity= + FLAGS.verbosity', 'hahahaah', volumes = {os.path.abspath("tmp/0.zip"): {'bind': '/code.zip', 'mode': 'rw'}}))
+            containers.append(start_container(client, 'python3 /code.zip -verbosity=' + FLAGS.verbosity, dir_name.replace('/', ''), volumes={os.path.abspath(dir_name) + '.zip': {'bind': '/code.zip', 'mode': 'rw'}}))
+
+        containers.append(start_container(client, 'python3 /code.zip -verbosity=' + FLAGS.verbosity, pipeline_dir.replace('/', ''), volumes={
+            os.path.abspath(pipeline_dir + '.zip'): {'bind': '/code.zip', 'mode': 'rw'},
+            os.path.abspath(conf['modules'][0]['input_file']): {'bind': '/' + conf['modules'][0]['input_file'], 'mode': 'rw'}
+            }))
 
         # Wait
         for container in containers:
-            container.wait()
+            try:
+                container.wait()
+            except Exception:
+                pass
 
         # Shut down RabbitMQ and MongoDB container
-        if conf['pipeline']['mode'] == 'docker':
+        if conf['pipeline']['mode'] == 'docker' and FLAGS.debug is False:
             rabbitmq.kill()
             mongodb.kill()
-
-
-
-

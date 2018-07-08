@@ -160,7 +160,7 @@ class Module(object):
     #  @param job The job object to load.
     #  @return The data loaded.
     def load_job_data(self, job):
-        if self.use_mongodb is False or job.output_path == "":
+        if self.use_mongodb is False:
             path = job.output_base + '/' + job.output_path if job.output_path != "" else job.input_uri
             log.info('Load data from file ' + path)
             with open(path) as f:

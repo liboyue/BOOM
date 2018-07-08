@@ -86,11 +86,12 @@ class Logger(Module):
 
         self.save()
 
-        with open(self.exp_name + '/log.txt', 'w') as f:
-            f.write(self.fs.get(self.file_id) \
-                        .read() \
-                        .decode()
-                        )
+        if self.use_mongodb is True:
+            with open(self.exp_name + '/log.txt', 'w') as f:
+                f.write(self.fs.get(self.file_id) \
+                            .read() \
+                            .decode()
+                       )
 
 
 if __name__ == '__main__':
