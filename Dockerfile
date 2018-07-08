@@ -28,12 +28,14 @@ RUN pip3 install glog numpy pika pydotplus pymongo pytest pyyaml six
 RUN pip3 install rouge
 
 # Install BOOM
-RUN git clone https://github.com/liboyue/BOOM.git
-RUN cd BOOM && make install
+# RUN git clone https://github.com/liboyue/BOOM.git
+COPY . /boom
+RUN ls /boom
+RUN cd /boom && make install
 
 # Create data dir for MongoDB
 RUN mkdir /data
-#WORKDIR /app
+WORKDIR /
 
 # RabbitMQ port
 EXPOSE 5672
