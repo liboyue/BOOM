@@ -1,9 +1,10 @@
 # Toy Example
 ## Configuring a pipeline for simple data processing in BOOM
 
-This toy example will show you all that is necessary to get started in BOOM. You can explore all the code associated with this example under `/example/toy`.
+This toy example will show you all that is necessary to get started in BOOM.
 
 The first step is to create a module for your pipeline to use.
+You can find the following code in `examples/toy/extra_modules/Sample.py`.
 
 ```
 import glog as log
@@ -24,36 +25,53 @@ class Sample(Module):
         return data
 ```
 
-In this toy example, we define a class `Sample` that is a subclass of `Module`. The `__init__()` method in this case simply passes all the parameters up to the parent class, but a more complicated module may also have additionally initialization requirements that would be met here.
+In this example, we define a class `Sample` that extends the base `Module` class.
+The `__init__()` method in this case simply passes all the parameters up to the parent class, but a more complicated module may also have additionally initialization requirements that needs to be met here.
 
-The only other requirement of our module is that it implement the process function which `return`s data for the next module to use. The pipeline for this module will consist of several `Sample` modules chained together, so this module will output data in the same format it reads it in.
+The only other requirement of our module is that it implements the process function which returns data for the next module to use.
+The pipeline for this module will consist of several `Sample` modules chained together, so this module will output data in the same format it reads it in.
 
-The data are made available to the module as an argument to the `process()` method. The parameters are available as a dictionary attribute of the job argument. The key is user-defined in the configuration file. This example will process each line in the dataset and append the phrase: "processed by [module name], params [parameter]".
+The data is made available to the module as an argument to the `process()` method.
+The parameters are available as attributes of the job argument, which are expanded by the ``pipeline`` class.
+This example will process each line in the dataset and append the phrase: "processed by [module name], params [parameter values]".
 
-In order to make use of this module, a pipeline needs to be defined in a configuration file. The configuration file for this example is shown here. The modules section declares a list of three `Sample` modules, that we have already written. The first module gets its data from the `data.json` file and the rest get their input from the preceding modules. The first `Sample` module has two parameters, one a collection and one an integer. The second module has one floating point parameter, and the third module has no parameters at all. The final module is a standard CSVWriter module that will write the final output in CSV format, it does not take parameters.
+In order to make use of this module, a pipeline needs to be defined in a configuration file.
+The configuration file for this example is shown here.
+The modules section declares a list of three `Sample` modules, that we have already implemented.
+The first module gets its data from the `data.json` file and the rest get their input from the preceding modules.
+The first module has two parameters: collection `p1` and integer `p2`.
+The second module has a float parameter, and the third module has no parameters at all.
+The final module is a standard CSVWriter module that will write the final output in CSV format, it does not take parameters.
 
 ```
+
 pipeline:
-    name: toy_pipeline
-    rabbitmq_host: 127.0.0.1
-    clean_up: false
-    use_mongodb: false
-    mongodb_host: 127.0.0.1
+    mode: docker # Running mode, local or docker
+    name: toy_pipeline # Name of the pipeline
+    rabbitmq_host: 127.0.0.1 # RabbitMQ's host's uri
+    clean_up: false # Whether the pipeline cleans up after finished running, true or false
+    use_mongodb: true # Whether to use MongoDB, true or false
+    mongodb_host: 127.0.0.1 # MongoDB's host's uri
 
 modules:
-    -   name: module_1
-        type: Sample
-        input_file: data.json
-        output_module: module_2
-        instances: 1
+    -   name: module_1 # Name of the module
+        type: Sample # Type of the module
+        input_file: data.json # Input file's uri
+        output_module: module_2 # The following module's name
+        instances: 1 # Number of instances of this module
         params:
             -   name: p1
-                type: collection
-                values:
+                type: collection # Type of the param, int, float or collection
+                values: # Possible vaules for collection param
                     - val1
                     - val2
                     - val3
 
+            -   name: p2
+                type: int
+                start: 0
+                end: 20
+                step_size: 20
             -   name: p2
                 type: int
                 start: 0
@@ -82,6 +100,4 @@ modules:
         instances: 1
 ```
 
-To run this example start in the top level directory and run `./start_services`.
-Then navigate to `example/toy` and run `boom`.
-When you are finished, navigate back to the top level directory and run `./stop_services`.
+To run this example, navigate to `example/toy` and run `boom`.

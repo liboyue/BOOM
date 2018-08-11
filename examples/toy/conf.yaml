@@ -1,23 +1,21 @@
-pipeline:
-    mode: docker
-    #mode: local
-    name: toy_pipeline
-    rabbitmq_host: 127.0.0.1
-    clean_up: false
-    use_mongodb: true
-    #use_mongodb: false
-    mongodb_host: 127.0.0.1
+pipeline: # Pipeline section, defines pipeline's properties
+    mode: docker # Running mode, local or docker, default local
+    name: toy_pipeline # Name of the pipeline
+    rabbitmq_host: 127.0.0.1 # RabbitMQ's host uri
+    clean_up: false # Whether the pipeline cleans up after finished running, true or false
+    use_mongodb: true # Whether to use MongoDB, true or false, default false
+    mongodb_host: 127.0.0.1 # MongoDB's host
 
 modules:
-    -   name: module_1
-        type: Sample
-        input_file: data.json
-        output_module: module_2
-        instances: 1
+    -   name: module_1 # Name of the module
+        type: Sample # Type of the module
+        input_file: data.json # Input file's uri
+        output_module: module_2 # The following module's name
+        instances: 1 # Number of instances of this module
         params:
             -   name: p1
-                type: collection
-                values:
+                type: collection # Type of the param, int, float or collection
+                values: # Possible vaules for collection param
                     - val1
                     - val2
                     - val3
