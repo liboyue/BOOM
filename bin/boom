@@ -301,9 +301,9 @@ if __name__ == '__main__':
         containers = []
 
         for dir_name in dir_list:
-            containers.append(start_container(client, 'python3 /code.zip -verbosity=' + FLAGS.verbosity, dir_name.replace('/', ''), volumes={os.path.abspath(dir_name) + '.zip': {'bind': '/code.zip', 'mode': 'rw'}}))
+            containers.append(start_container(client, 'python /code.zip -verbosity=' + FLAGS.verbosity, dir_name.replace('/', ''), volumes={os.path.abspath(dir_name) + '.zip': {'bind': '/code.zip', 'mode': 'rw'}}))
 
-        containers.append(start_container(client, 'python3 /code.zip -verbosity=' + FLAGS.verbosity, pipeline_dir.replace('/', ''), volumes={
+        containers.append(start_container(client, 'python /code.zip -verbosity=' + FLAGS.verbosity, pipeline_dir.replace('/', ''), volumes={
             os.path.abspath(pipeline_dir + '.zip'): {'bind': '/code.zip', 'mode': 'rw'},
             os.path.abspath(conf['modules'][0]['input_file']): {'bind': '/' + conf['modules'][0]['input_file'], 'mode': 'rw'}
             }))
