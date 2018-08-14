@@ -1,7 +1,6 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from .SentenceOrderer import SentenceOrderer
-from scipy.spatial.distance import cosine
 import re, sys
 import numpy as np
 
@@ -65,7 +64,7 @@ class KMeansOrderer(SentenceOrderer):
 				min_dist = 2.0
 				min_centroid = -1
 				for j in range(0, len(centroids)):
-					dist = cosine(pair[0], centroids[j])
+					dist = np.cos(pair[0], centroids[j])
 					if dist < min_dist:
 						min_dist = dist
 						min_centroid = j

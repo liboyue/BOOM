@@ -68,7 +68,7 @@ class Logger(Module):
 
                 # Append new logs and save.
                 self.file_id = self.fs.put(
-                    str.encode(tmp + '\n'.join(self.buf) + '\n'),
+                    (tmp + '\n'.join(self.buf) + '\n').encode('utf-8'),
                     filename='log.txt',
                     metadata=self.exp_name
                     )

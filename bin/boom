@@ -11,7 +11,6 @@ import time
 import yaml
 import gflags
 import glog as log
-#import gridfs
 import pymongo
 import pika
 import docker
@@ -269,7 +268,7 @@ if __name__ == '__main__':
     # Run.
     if conf['pipeline']['mode'] == 'local':
 
-        # Run local mode
+        # Run local mode.
         process_list = []
 
         for dir_name in dir_list + [pipeline_dir]:
@@ -295,17 +294,6 @@ if __name__ == '__main__':
             mongodb.kill()
 
     elif conf['pipeline']['mode'] == 'docker':
-
-        # Start modules
-        #for dir_name in dir_list[:-1]:
-        #    cmd = "docker run --rm -it --network='bridge' --name='" + dir_name + "' -v \"$PWD\"/" + dir_name + ".zip:/code.zip -it boom/docker /usr/bin/python3 /code.zip --verbosity=" + FLAGS.verbosity
-        #    process_list.append(execute_cmd(cmd))
-
-        # Start pipeline
-        #cmd = ['python3', dir_list[-1] + '.zip', '--verbosity=' + FLAGS.verbosity]
-        #process_list.append(execute_cmd(cmd))
-
-
 
         def print_log(container):
             print(container.logs().decode())

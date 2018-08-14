@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 import json
 import logging
@@ -302,8 +303,11 @@ class Pipeline(object):
     ## The function to run the pipeline
     def run(self):
 
+        # Move data to the exp folder.
         if self.conf['pipeline']['use_mongodb'] is True:
             self.move_data_to_mongodb()
+        else:
+            shutil.copyfile(self.conf['modules'][0]['input_file'], self.exp_name + '/' + self.conf['modules'][0]['input_file'])
 
         # Send the first job.
         for params in self.expand_params(self.conf['modules'][0]):
