@@ -5,14 +5,14 @@ PACKAGE_VERSION=$(strip $(shell apt-cache policy $(PACKAGE_NAME) | grep Installe
 all:
 	@echo "package name: $(PACKAGE_VERSION)"
 	make install
-	#make test
-	#make doc
-	#make docker
+	make test
+	make doc
+	make docker
 
 install:
 	pip install -r requirements.txt
 	python setup.py sdist
-	pip install dist/boom-0.1.tar.gz
+	pip install dist/boom-0.1.tar.gz --user
 
 docker:
 	docker build -t boom/docker .
