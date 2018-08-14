@@ -7,9 +7,10 @@ We also offer an script `split_data.py` to split data to small chuncks for devel
 
 ## Exploring a Configuration Space and Adapting pre-existing modules
 
-This example will show you how to configure your pipeline to explore a parameter space and take advantage of modules you already have on hand. You can explore all the code associated with this example under `example/BioASQ`.
+This example will show you how to configure your pipeline to explore a parameter space and take advantage of modules you already have on hand. You can explore all the code associated with this example under `examples/BioASQ`.
 
-The BioASQ example was adapted from a pre-existing codebase. If your system is already modularized it is extremely easy to implement it as a BOOM pipeline.
+The BioASQ example was adapted from a pre-existing codebase.
+If your system is already modularized, it is extremely easy to implement it as a BOOM pipeline.
 Just make sure the parameters are taken as function arguments to the function called to do the processing and BOOM will handle generating the parameter combinations necessary for exploring the parameter space.
 
 Because most of the processing occurs in the `CoreMMR` module, we have additional code to parallelize the processing. This requires us to override the `cleanup()` function of the `Module` class so the process pool gets closed.
@@ -105,7 +106,4 @@ modules:
         output_file: results.csv
         instances: 1
 ```
-
-To run this example start in the top level directory and run `./start_services`.
-Then navigate to `example/BioASQ` and run `boom`.
-When you are finished, navigate back to the top level directory and run `./stop_services`.
+To run this example, navigate to `example/BioASQ` and run `boom`.
