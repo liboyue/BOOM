@@ -1,36 +1,41 @@
-FROM phusion/baseimage:0.10.1
+FROM python:2.7-alpine
+MAINTAINER Boyue Li <boyuel@andrew.cmu.edu>
 
-# Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
+# Update Apk
+RUN apk --no-cache update
 
-# Update Apt
-RUN apt-get update
+# Install xz, curl and make
+RUN apk --no-cache add xz curl make
 
-# Install Git, GraphViz, pip
-RUN apt-get install -y git graphviz python3-pip
+# Install Git, GraphViz
+RUN apk --no-cache add git graphviz
 
-# Install RabbitMQ
-RUN curl https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add -
-RUN apt-get update
-RUN apt-get install -y rabbitmq-server
+# Install RabbitMQ, from https://github.com/pikado/alpine-rabbitmq/blob/master/Dockerfile
+ENV RABBITMQ_VERSION 3.6.14
+ENV RABBITMQ_HOME /usr/local/rabbitmq-server
+RUN apk --no-cache add erlang erlang-mnesia erlang-public-key erlang-crypto erlang-ssl erlang-sasl \
+    erlang-asn1 erlang-inets erlang-os-mon erlang-xmerl erlang-eldap erlang-syntax-tools
+RUN curl -sL https://www.rabbitmq.com/releases/rabbitmq-server/v${RABBITMQ_VERSION}/rabbitmq-server-generic-unix-${RABBITMQ_VERSION}.tar.xz | tar -xJ -C /usr/local
+RUN ln -s /usr/local/rabbitmq*${RABBITMQ_VERSION} ${RABBITMQ_HOME}
+ENV PATH="${PATH}:/usr/local/rabbitmq-server/sbin"
 
 # Install MongoDB
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-RUN echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-RUN apt-get update
-RUN apt-get install -y mongodb-org
-
-# Clean up APT when done.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apk --no-cache add mongodb
 
 # Install Python dependencies
-RUN pip3 install glog numpy pika pydotplus pymongo pytest pyyaml six
-RUN pip3 install rouge
+RUN apk --no-cache add gcc gfortran musl-dev openblas-dev
+RUN pip --no-cache-dir install numpy glog nltk pika pydotplus pymongo pytest pyyaml six
+RUN pip --no-cache-dir install rouge
+
+# If NLTK data is needed
+#RUN python -m nltk.downloader all
 
 # Install BOOM
-# RUN git clone https://github.com/liboyue/BOOM.git
-COPY . /boom
-RUN ls /boom
+# Clone code from GitHub
+RUN git clone https://github.com/liboyue/BOOM.git boom
+# Or copy from your local dir
+# COPY . /boom
+#RUN ls /boom
 RUN cd /boom && make install
 
 # Create data dir for MongoDB
