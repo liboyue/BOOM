@@ -6,9 +6,10 @@ An easy-to-use multi-process Configuration Space Exploration pipeline framework.
 - Flexible: we offer common modules for QA pipelines, and it is very easy to develop your own modules.
 - Parameter tuning: automatically run on all possible parameter combinations and saves the results.
 - High efficiency: we use multiple processes to run the whole pipeline.
+- Compatibility: only compatible with Python 2.
 
 ## Installation
-First, install [RabbitMQ](https://www.rabbitmq.com/download.html) and Python3.
+First, install [RabbitMQ](https://www.rabbitmq.com/download.html) and `pip`.
 
 Then, clone the repository, run
 
@@ -22,6 +23,9 @@ When executing, it will load `conf.yaml` from the current directory.
 You can also specify the configuration file to use by adding option `-conf PATH_TO_CONF_FILE`.
 
 For more options, run `boom --help`.
+
+## Docker image
+To build the docker image, run `make docker`.
 
 ## Tutorials
 Please check out the two tutorials in `examples` folder.
@@ -58,16 +62,25 @@ Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
 
 Following is the `modules` section of the toy example's configuration file:
 
+
+    pipeline: # Pipeline section, defines pipeline's properties
+        mode: docker # Running mode, local or docker, default local
+        name: toy_pipeline # Name of the pipeline
+        rabbitmq_host: 127.0.0.1 # RabbitMQ's host uri
+        clean_up: false # Whether the pipeline cleans up after finished running, true or false
+        use_mongodb: true # Whether to use MongoDB, true or false, default false
+        mongodb_host: 127.0.0.1 # MongoDB's host
+
     modules:
-        -   name: module_1
-            type: Sample
-            input_file: data.json
-            output_module: module_2
-            instances: 1
+        -   name: module_1 # Name of the module
+            type: Sample # Type of the module
+            input_file: data.json # Input file's uri
+            output_module: module_2 # The following module's name
+            instances: 1 # Number of instances of this module
             params:
                 -   name: p1
-                    type: collection
-                    values:
+                    type: collection # Type of the param, int, float or collection
+                    values: # Possible vaules for collection param
                         - val1
                         - val2
                         - val3
