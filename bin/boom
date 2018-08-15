@@ -298,6 +298,18 @@ if __name__ == '__main__':
         def print_log(container):
             print(container.logs().decode())
 
+        # Stop possible previous RabbitMQ/MongoDB containers.
+        try:
+            client.container.get('mongodb').kill()
+        except Exception:
+            pass
+
+        try:
+            client.container.get('rabbitmq').kill()
+        except Exception:
+            pass
+
+        # Create containers.
         containers = []
 
         for dir_name in dir_list:
