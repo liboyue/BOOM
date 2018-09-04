@@ -32,8 +32,21 @@ Please check out the two tutorials in `examples` folder.
 
 ## Quick tutorails
 
-### Basics
-There are two main components to your BOOM pipeline: the modules and the configuration file. Each pipeline can have an arbitrary number of modules (n >= 1) but there is only one configuration file that defines the pipeline. BOOM works by instantiating each module and passing data along from one module to the next, allowing each to process and transform the data along the way.
+### Configuation Space Exploration
+A QA pipeline may be consisted with several modules, each module may have some parameters.
+Each combination of parameters corresponds to a path in the parameter space.
+BOOM exhaustively run the pipeline on every possible parameter combinations, saves all intermediate results and final results.
+
+The following figure shows a pipeline which has several modules.
+The execution path is a tree which every level corresponds to a module, and each node stands for a different parameter value.
+The leaf nodes are metric values.
+Red arrows belongs to the best parameter combination.
+![alt text](https://github.com/liboyue/BOOM/blob/master/sample_pipeline.png "The pipeline configuration and actual execution path.")
+
+### Components
+There are two main components to a BOOM pipeline: the modules and the configuration file.
+Each pipeline can have an arbitrary number of modules (n >= 1) but there is only one configuration file that defines the pipeline.
+BOOM works by instantiating each module and passing data along from one module to the next, allowing each to process and transform the data along the way.
 
 #### Modules
 The building block of a BOOM pipeline is the [Module class](https://bioasq.boyue.li/classsrc_1_1modules_1_1module_1_1_module.html). Each module in the pipeline takes in the data in the exact format returned by the previous module and return the data for the next module in its `process()` method. At a minimum, each user-defined module must subclass `Module` and implement the `__init__()` and `process()` methods.
