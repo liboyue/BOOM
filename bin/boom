@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-import subprocess
 import shutil
 import json
 import time
@@ -15,39 +14,10 @@ import pymongo
 import pika
 import docker
 import boom
+from boom.utils import rabbitmq_status, mongodb_status, execute_cmd
 
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
-
-def execute_cmd(cmd):
-    if FLAGS.debug == True:
-        log.info('Execute ' + ' '.join(cmd))
-        return None
-    else:
-        log.debug('Execute ' + ' '.join(cmd))
-        return subprocess.Popen(cmd)
-
-
-## The function to test if RabbitMQ is running
-#  @param rabbitmq_host The host of RabbitMQ server
-#  @return True if RabbitMQ is running, False otherwise
-def rabbitmq_status(rabbitmq_host):
-    try:
-        pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
-        return True
-    except:
-        return False
-
-## The function to test if MongoDB server is running
-#  @param mongodb_host The host of MongoDB server
-#  @return True if MongoDB is running, False otherwise
-def mongodb_status(mongodb_host):
-    try:
-        pymongo.MongoClient(mongodb_host, serverSelectionTimeoutMS=1000).server_info()
-        return True
-    except pymongo.errors.ServerSelectionTimeoutError:
-        return False
-
 
 ## The function to save code to files, copy extra modules and zip the code
 #  @param code The code to save
@@ -198,8 +168,8 @@ if __name__ == '__main__':
         time.sleep(5)
 
     # Initialze logger.
-    #if FLAGS.debug == False:
-        #boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
+    if FLAGS.debug == False:
+        boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
 
     log.warn('Loglevel: ' + FLAGS.verbosity)
     log.warn('Loaded configuration file from: ' + FLAGS.conf)
@@ -277,13 +247,10 @@ if __name__ == '__main__':
             process_list.append(execute_cmd(cmd))
 
         # Wait for processes to finish.
-        if FLAGS.debug == False:
+        if FLAGS.debug is False:
             for process in process_list:
                 process.wait()
 
-        # Clean up
-        if FLAGS.debug == False:
-            shutil.rmtree(FLAGS.tmp_dir)
 
         # Kill RabbitMQ process if needed.
         if rabbitmq != None:
@@ -302,23 +269,23 @@ if __name__ == '__main__':
         try:
             client.container.get('mongodb').kill()
         except Exception:
-            pass
+            log.warn('Exception encountered')
 
         try:
             client.container.get('rabbitmq').kill()
         except Exception:
-            pass
+            log.warn('Exception encountered')
 
         # Create containers.
         containers = []
-
-        for dir_name in dir_list:
-            containers.append(start_container(client, 'python /code.zip -verbosity=' + FLAGS.verbosity, dir_name.replace('/', ''), volumes={os.path.abspath(dir_name) + '.zip': {'bind': '/code.zip', 'mode': 'rw'}}))
 
         containers.append(start_container(client, 'python /code.zip -verbosity=' + FLAGS.verbosity, pipeline_dir.replace('/', ''), volumes={
             os.path.abspath(pipeline_dir + '.zip'): {'bind': '/code.zip', 'mode': 'rw'},
             os.path.abspath(conf['modules'][0]['input_file']): {'bind': '/' + conf['modules'][0]['input_file'], 'mode': 'rw'}
             }))
+
+        for dir_name in dir_list:
+            containers.append(start_container(client, 'python /code.zip -verbosity=' + FLAGS.verbosity, dir_name.replace('/', ''), volumes={os.path.abspath(dir_name) + '.zip': {'bind': '/code.zip', 'mode': 'rw'}}))
 
         # Wait
         for container in containers:
@@ -331,3 +298,7 @@ if __name__ == '__main__':
         if conf['pipeline']['mode'] == 'docker' and FLAGS.debug is False:
             rabbitmq.kill()
             mongodb.kill()
+
+    # Clean up
+    if FLAGS.debug is False:
+        shutil.rmtree(FLAGS.tmp_dir)
