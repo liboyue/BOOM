@@ -1,16 +1,25 @@
+import boom
 from boom import Pipeline
-from boom import Parameter
 import os
 import pika
+import time
 
 from boom import Job
 from boom.modules import Module
 import yaml
 import json
+import gflags
+import sys 
+import shutil
+import pytest
 
 from time import sleep
+from boom.utils import rabbitmq_status, mongodb_status, execute_cmd
 
-with open('tests/test_conf.yaml') as f:
+
+
+# Load data
+with open('test_conf.yaml') as f:
     conf = yaml.load(f)
 
 conf_mongo = conf.copy()
@@ -18,14 +27,26 @@ conf_mongo['pipeline']['use_mongodb'] = True
 
 data = {'test': 'test'}
 
+gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
+gflags.DEFINE_string('tmp_dir', 'tmp', 'path to the temporare directory')
+gflags.DEFINE_boolean('plot', False, 'plots the pipeline')
+gflags.DEFINE_boolean('profile', False, 'profile each module')
+gflags.DEFINE_boolean('help', False, 'print the help message')
+gflags.DEFINE_boolean('info', False, 'print details about the pipeline, including how many modules, how many jobs, etc.')
+gflags.DEFINE_boolean('debug', False, 'debugging mode for the pipeline. Prints all command without execution.')
+
+# Parse args.
+FLAGS = gflags.FLAGS
+sys.argv = [sys.argv[0]] + sys.argv[3:]
+FLAGS(sys.argv)
+
 def test_init():
     global p
-    p = Pipeline('tests/test_conf.yaml')
+    p = Pipeline(json.dumps(conf), 'TEST_EXP')
 
 def test_init_mongo():
-    sleep(1) # Pause for 1 sec in case two piplines would use the same directory.
     global p_m
-    p_m = Pipeline('tests/test_conf_mongo.yaml')
+    p_m = Pipeline(json.dumps(conf_mongo), 'TEST_EXP_MONGO')
 
 def test_calculate_total_jobs():
     assert p.calculate_total_jobs(conf) == 36

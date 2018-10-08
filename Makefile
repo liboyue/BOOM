@@ -15,7 +15,14 @@ docker:
 	docker build -t boom/docker .
 
 test:
+	mkdir -p tests/data
+	rabbitmq-server &
+	mongod --dbpath tests/data --bind_ip 127.0.0.1 -logpath /tmp/mongod.log &
+	sleep 5
 	cd tests && py.test -v --color=yes . && cd ..
+	rabbitmqctl stop
+	killall mongod
+	rm -rf tests/data
 
 doc:
 	doxygen Doxyfile
