@@ -106,6 +106,10 @@ class Pipeline(object):
         self.output_base = self.exp_name
         time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
 
+        # Clean up data dir if needed
+        if os.path.isdir(self.output_base) is True:
+            shutil.rmtree(self.output_base)
+
         # Create data dir
         os.mkdir(self.output_base)
 
