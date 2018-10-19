@@ -12,7 +12,10 @@ install:
 	pip install dist/boom-0.1.tar.gz
 
 docker:
-	docker build -t boom/docker .
+	docker build -t boom_py2 -f Dockerfile_py2 .
+	docker tag boom_py2 boom
+	# docker build -t boom_py3 -f Dockerfile_py3 .
+	# docker tag boom_py3 boom
 
 test:
 	mkdir -p tests/data

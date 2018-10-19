@@ -71,7 +71,7 @@ def start_container(client, cmd, name, volumes=None, network_mode='host'):
     if FLAGS.debug == False:
         if (volumes == None):
             return client.containers.run(
-                'boom/docker',
+                'boom',
                 cmd,
                 auto_remove=True,
                 network_mode=network_mode,
@@ -80,7 +80,7 @@ def start_container(client, cmd, name, volumes=None, network_mode='host'):
                 )
         else:
             return client.containers.run(
-                'boom/docker',
+                'boom',
                 cmd,
                 auto_remove=True,
                 network_mode=network_mode,
@@ -97,7 +97,7 @@ def start_container(client, cmd, name, volumes=None, network_mode='host'):
         if volumes != None:
             v = ' -v ' + ' -v '.join([_escape_path(local_dir) + ':' + _escape_path(volumes[local_dir]['bind']) for local_dir in volumes])
 
-        log.info("Start container with command: docker run --rm -it --network='" + network_mode + "' --name='" + name + "'" + v + ' boom/docker ' + cmd)
+        log.info("Start container with command: docker run --rm -it --network='" + network_mode + "' --name='" + name + "'" + v + ' boom ' + cmd)
 
         return None
 
