@@ -2,7 +2,6 @@ pipeline:
     name: bioasq_pipeline
     rabbitmq_host: 127.0.0.1
     clean_up: false
-    #use_mongodb: true
     use_mongodb: false
     mongodb_host: 127.0.0.1
     mode: local
@@ -10,8 +9,9 @@ pipeline:
 modules:
     -   name: ranker
         type: CoreMMR
+        # input_file: train_1.json
         input_file: train_50.json
-        #input_file: BioASQ-trainingDataset6b.json
+        # input_file: BioASQ-trainingDataset6b.json
         output_module: orderer
         instances: 1
         processes: 2
@@ -40,9 +40,9 @@ modules:
         params:
             -   name: word_limit
                 type: int
-                start: 50
+                start: 100
                 end: 200
-                step_size: 50
+                step_size: 100
 
     -   name: rouge
         type: Rouge
