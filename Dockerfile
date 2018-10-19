@@ -27,8 +27,9 @@ RUN apk --no-cache add gcc gfortran musl-dev openblas-dev
 RUN pip --no-cache-dir install numpy glog nltk pika pydotplus pymongo pytest pyyaml six
 RUN pip --no-cache-dir install rouge
 
-# If NLTK data is needed
-#RUN python -m nltk.downloader all
+# NLTK data is needed for the BioASQ example
+RUN python -c "import nltk;nltk.download('stopwords')"
+RUN python -c "import nltk;nltk.download('punkt')"
 
 # Install BOOM
 # Clone code from GitHub
