@@ -7,6 +7,9 @@ Please install [NLTK](https://www.nltk.org/), then download its data by running 
 Please register at the [BioASQ website](http://participants-area.bioasq.org/) and download the dataset for task 6b [here](http://participants-area.bioasq.org/accounts/login/?next=/Tasks/6b/trainingDataset/). You start to download a zip file named `BioASQ-training6b.zip`, after unzipping it, you will have `BioASQ-trainingDataset6b.json`.
 We also offer an script `split_data.py` to split data to small chuncks for developing and debugging.
 
+NOTE: The `train_sample.json` only shows the code could work, it is not real BioASQ data.
+Please make sure to download a copy of BioASQ using the link above.
+
 
 ## Exploring a Configuration Space and Adapting pre-existing modules
 

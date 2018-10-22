@@ -3,7 +3,7 @@ pipeline: # Pipeline section, defines pipeline's properties
     name: toy_pipeline # Name of the pipeline
     rabbitmq_host: 127.0.0.1 # RabbitMQ's host uri
     clean_up: false # Whether the pipeline cleans up after finished running, true or false
-    use_mongodb: true # Whether to use MongoDB, true or false, default false
+    use_mongodb: false # Whether to use MongoDB, true or false, default false
     mongodb_host: 127.0.0.1 # MongoDB's host
 
 modules:
