@@ -70,7 +70,11 @@ class Pipeline(object):
 
         ## The connection the pipeline instance uses.
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=self.rabbitmq_host)
+            pika.ConnectionParameters(
+                host=self.rabbitmq_host,
+                heartbeat=0,
+                blocked_connection_timeout=0
+                )
             )
 
         ## The channel the pipeline instance uses.

@@ -167,10 +167,6 @@ if __name__ == '__main__':
     if rabbitmq != None or mongodb != None:
         time.sleep(5)
 
-    # Initialze logger.
-    if FLAGS.debug == False:
-        boom.log.set_logger(conf['pipeline']['rabbitmq_host'])
-
     log.warn('Loglevel: ' + FLAGS.verbosity)
     log.warn('Loaded configuration file from: ' + FLAGS.conf)
     log.warn('Running mode: ' + conf['pipeline']['mode'])

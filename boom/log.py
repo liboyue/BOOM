@@ -38,7 +38,13 @@ class RabbitHandler(logging.Handler):
     def connect(self):
 
         ## The connection the pipeline instance uses.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
+        self.connection = pika.BlockingConnection(
+                pika.ConnectionParameters(
+                    host=self.rabbitmq_host,
+                    heartbeat=0,
+                    blocked_connection_timeout=0
+                    )
+                )
 
         ## The channel the logger instance uses.
         self.channel = self.connection.channel()
