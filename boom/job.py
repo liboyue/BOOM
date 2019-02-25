@@ -7,43 +7,41 @@ import glog as log
 class Job(object):
     """The information object class."""
 
-    def __init__(self, job_id, input_uri, output_base, output_path, params=None,
-                 producer=None, consumer=None, processing_time=None):
+    def __init__(self, job_id, input_uri, output_base, output_path,
+                 params=None, producer=None, consumer=None,
+                 processing_time=None):
 
-        ## The id of this job
+        # The id of this job
         self.id = job_id
-        ## The uri to the data file.
+        # The uri to the data file.
         self.input_uri = input_uri
-        ## The base uri/db to save a new data file.
+        # The base uri/db to save a new data file.
         self.output_base = output_base
-        ## The path/key to save a new data file.
+        # The path/key to save a new data file.
         self.output_path = output_path
-        ## The params may be needed.
+        # The params may be needed.
         self.params = params
-        ## The timastampe when the object is created.
+        # The timestamp when the object is created.
         self.timestamp = datetime.utcnow()
-        ## The producer of the data obejct.
+        # The producer of the data object.
         self.producer = producer
-        ## The consumer of the data obejct.
+        # The consumer of the data object.
         self.consumer = consumer
-        ## The time to process the data object.
+        # The time to process the data object.
         self.processing_time = processing_time
 
         log.debug('Creating data object: ' + str(self))
 
-
     def __str__(self):
         return self.to_json()
 
-
-    ## Update the timestampe and processing time.
+    # Update the timestamp and processing time.
     def update_timestamp(self):
         tmp = self.timestamp
         self.timestamp = datetime.utcnow()
         self.processing_time = self.timestamp - tmp
 
-
-    ## Serialize the object to a json formatted string.
+    # Serialize the object to a json formatted string.
     #  @return the serialized json string.
     def to_json(self):
         return json.dumps({
@@ -58,8 +56,7 @@ class Job(object):
             'processing_time': str(self.processing_time)
             })
 
-
-    ## Deserialize the object from a json formatted string.
+    # Deserialize the object from a json formatted string.
     #  @param json_str the json formatted string.
     #  @return the deserialize Job object.
     @staticmethod

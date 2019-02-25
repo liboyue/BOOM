@@ -10,13 +10,13 @@ class Logger(Module):
     def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
         super(Logger, self).__init__(module_id, name, exp_name, rabbitmq_host,
                                      pipeline_conf, module_conf, **kwargs)
-        ## The buffer for logs.
+        # The buffer for logs.
         self.buf = []
 
-        ## The id of the log file in MongoDB.
+        # The id of the log file in MongoDB.
         self.file_id = None
 
-    ## The function to handle incoming logs.
+    # The function to handle incoming logs.
     def receive_job(self, ch, method, properties, body):
 
         # Parse request body.
@@ -46,7 +46,7 @@ class Logger(Module):
                     self.is_finished = True
                     self.cleanup()
 
-    ## The function to save files.
+    # The function to save files.
     #  @param exp_name The name of an experiment.
     def save(self):
 
@@ -76,7 +76,7 @@ class Logger(Module):
             # Clean the buf.
             self.buf = []
 
-    ## Clean up before exiting.
+    # Clean up before exiting.
     def cleanup(self):
         self.connect()
         log.debug(str(self.queue.method.message_count) + ' logs in the logger queue left')
