@@ -67,6 +67,9 @@ class Job(object):
     @staticmethod
     def from_json(json_str):
         data = json.loads(json_str)
+        config = None
+        if 'config' in data:
+            config = json.loads(data['config'])
         return Job(
             data['id'],
             data['input_uri'],
@@ -76,5 +79,5 @@ class Job(object):
             data['producer'],
             data['consumer'],
             data['processing_time'],
-            json.loads(data['config'])
-            )
+            config
+        )
