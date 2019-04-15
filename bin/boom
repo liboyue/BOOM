@@ -15,11 +15,13 @@ import pika
 import docker
 import boom
 from boom.utils import rabbitmq_status, mongodb_status, execute_cmd
+from python_terraform import *
 
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
 
-## The function to save code to files, copy extra modules and zip the code
+
+# The function to save code to files, copy extra modules and zip the code
 #  @param code The code to save
 #  @param dir_name The directory to save the code
 def write_and_zip_code(code, dir_name):
@@ -27,7 +29,9 @@ def write_and_zip_code(code, dir_name):
     os.mkdir(dir_name)
 
     # Copy libraries to the module's dir
-    shutil.copytree('extra_modules', dir_name + '/extra_modules', ignore=shutil.ignore_patterns('*.pyc', '__pycache__', '.*'))
+    shutil.copytree('extra_modules', dir_name + '/extra_modules',
+                    ignore=shutil.ignore_patterns('*.pyc', '__pycache__', '.*')
+                    )
 
     # Write executable code
     with open(dir_name + '/__main__.py', 'w') as f:
@@ -41,6 +45,8 @@ def generate_module_code(conf, module, cur_id, exp_name):
 
     if module['type'] == 'CSVWriter':
         code = "import sys\nimport gflags\nfrom boom.modules import CSVWriter\n"
+    elif module['type'] == 'JSONWriter':
+        code = "import sys\nimport gflags\nfrom boom.modules import JSONWriter\n"
     elif module['type'] == 'Logger':
         code = "import sys\nimport gflags\nfrom boom.modules import Logger\n"
     else:
@@ -101,6 +107,11 @@ def start_container(client, cmd, name, volumes=None, network_mode='host'):
 
         return None
 
+def create_server(tf):
+    tf.plan(no_color=IsFlagged, refresh=False, capture_output=True)
+    print(tf.plan())
+    print(tf.apply(skip_plan=True))
+
 if __name__ == '__main__':
 
     gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
@@ -144,6 +155,16 @@ if __name__ == '__main__':
         rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
         # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
         conf['pipeline']['rabbitmq_host'] = '127.0.0.1' # Using host mode for the network
+
+    elif conf['pipeline']['mode'] == 'aws':
+        tf = Terraform(working_dir='../../boom/infra')
+        create_server(tf)
+        if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
+            rabbitmq = execute_cmd(['rabbitmq-server'])
+            log.info('Starting RabbitMQ server')
+        else:
+            log.info('RabbitMQ is running')
+
 
     # If we need to start MongoDB.
     mongodb = None
@@ -295,6 +316,9 @@ if __name__ == '__main__':
             rabbitmq.kill()
             mongodb.kill()
 
+    elif conf['pipeline']['mode'] == 'aws':
+        pass
+
     # Clean up
-    if FLAGS.debug is False:
-        shutil.rmtree(FLAGS.tmp_dir)
+    # if FLAGS.debug is False:
+    #     shutil.rmtree(FLAGS.tmp_dir)

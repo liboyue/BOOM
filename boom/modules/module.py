@@ -14,7 +14,10 @@ logging.getLogger("pika").propagate = False
 
 
 class Module(object):
-    """The base module class. Every actual module should be derived from this class."""
+    """
+    The base module class. Every actual module should be derived from
+    this class.
+    """
 
     # Initialization.
     def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
@@ -42,16 +45,20 @@ class Module(object):
                 )
 
         # The module's input file path. None if not exists.
-        self.input_file = module_conf['input_file'] if 'input_file' in module_conf else None
+        self.input_file = module_conf['input_file'] \
+            if 'input_file' in module_conf else None
 
         # The module's output file path. None if not exists.
-        self.output_file = module_conf['output_file'] if 'output_file' in module_conf else None
+        self.output_file = module_conf['output_file'] \
+            if 'output_file' in module_conf else None
 
         # The module's input module's name. None if not exists.
-        self.input_module = module_conf['input_module'] if 'input_module' in module_conf else None
+        self.input_module = module_conf['input_module'] \
+            if 'input_module' in module_conf else None
 
         # The module's output module's name. None if not exists.
-        self.output_module = module_conf['output_module'] if 'output_module' in module_conf else None
+        self.output_module = module_conf['output_module'] \
+            if 'output_module' in module_conf else None
 
         # The RabbitMQ server name/IP/url.
         self.rabbitmq_host = rabbitmq_host
@@ -65,13 +72,11 @@ class Module(object):
         # Connect
         self.connect()
 
-
     def __str__(self):
         return json.dumps({
             'name': self.name,
             'id': self.id,
             })
-
 
     # The function to (re)connect to RabbitMQ server.
     def connect(self):
@@ -80,7 +85,6 @@ class Module(object):
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=self.rabbitmq_host,
-                heartbeat_interval=0,
                 blocked_connection_timeout=0
                 )
             )
@@ -93,8 +97,8 @@ class Module(object):
         self.channel.basic_qos(prefetch_count=1)
 
         # Connect to RabbitMQ
-        self.channel.basic_consume(self.receive_job, queue=self.name)
-
+        self.channel.basic_consume(consumer_callback=self.receive_job,
+                                   queue=self.name)
 
     # The function to handle incoming jobs.
     def receive_job(self, ch, method, properties, body):
@@ -117,11 +121,25 @@ class Module(object):
             job.producer = self.name
             job.consumer = self.output_module
             job.output_path += self.name + '_' + json.dumps(job.params) + '_'
+            if job.config is None:
+                job.config = [
+                    {
+                        'module': self.name,
+                        'params': job.params
+                    }
+                ]
+            else:
+                job.config.append([
+                    {
+                        'module': self.name,
+                        'params': job.params
+                    }
+                ])
 
             # Save data and update the data uri.
             job.input_uri = self.save_job_data(job, data)
 
-            # Update timestampe and processing time.
+            # Update timestamp and processing time.
             job.update_timestamp()
 
             # Connect
@@ -147,8 +165,7 @@ class Module(object):
                     self.is_finished = True
                     self.cleanup()
 
-
-    # Get the name of the mdoule.
+    # Get the name of the module.
     def get_name(self):
         return self.name
 
@@ -172,8 +189,6 @@ class Module(object):
                     .decode("utf-8")
             return self.parse_data(data)
 
-
-
     # Save Job and data to file or MongoDB.
     #  @param job The job to be saved.
     #  @param data The data to be saved.
@@ -193,20 +208,17 @@ class Module(object):
                 )
         return job.output_path
 
-
     # Parse the loaded data
     #  @param data The data to be parsed.
     #  @return the parsed data.
     def parse_data(self, data):
         return json.loads(data)
 
-
     # Dump the data to string
     #  @param data The data to be dumped.
     #  @return the dumped data.
     def dump_data(self, data):
         return json.dumps(data)
-
 
     # The function to run the algorithm and process data objects.
     #  This function needs to be implemented in each class and should run the
@@ -217,7 +229,6 @@ class Module(object):
     #  @return The processed data object.
     def process(self, job, data):
         pass
-
 
     # The function to start the service.
     def run(self):

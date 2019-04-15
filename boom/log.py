@@ -11,6 +11,7 @@ FLAGS = flags.FLAGS
 # Disable Pika's debugging messages.
 logging.getLogger("pika").propagate = False
 
+
 class RabbitHandler(logging.Handler):
 
     # The terminator.
@@ -86,6 +87,7 @@ class RabbitHandler(logging.Handler):
 
         except Exception:
             self.handleError(record)
+
 
 # The function that updates the logger.
 #  @param rabbitmq_host The RabbitMQ host.

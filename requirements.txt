@@ -1,7 +1,7 @@
 docker
 glog
 numpy
-pika
+pika==0.13.0
 pydotplus
 pylint
 pymongo

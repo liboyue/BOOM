@@ -4,6 +4,7 @@ import glog as log
 
 from .module import Module
 
+
 class Logger(Module):
     "The Logger module saves logs sent to it to a file."
 

@@ -9,9 +9,11 @@ class Job(object):
 
     def __init__(self, job_id, input_uri, output_base, output_path,
                  params=None, producer=None, consumer=None,
-                 processing_time=None):
+                 processing_time=None, config=None):
 
         # The id of this job
+        if config is None:
+            config = []
         self.id = job_id
         # The uri to the data file.
         self.input_uri = input_uri
@@ -29,6 +31,8 @@ class Job(object):
         self.consumer = consumer
         # The time to process the data object.
         self.processing_time = processing_time
+        # The configuration for the current Job
+        self.config = config
 
         log.debug('Creating data object: ' + str(self))
 
@@ -53,7 +57,8 @@ class Job(object):
             'timestamp': str(self.timestamp),
             'producer': self.producer,
             'consumer': self.consumer,
-            'processing_time': str(self.processing_time)
+            'processing_time': str(self.processing_time),
+            'config': json.dumps(self.config)
             })
 
     # Deserialize the object from a json formatted string.
@@ -71,4 +76,5 @@ class Job(object):
             data['producer'],
             data['consumer'],
             data['processing_time'],
+            json.loads(data['config'])
             )
