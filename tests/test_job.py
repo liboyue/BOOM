@@ -11,15 +11,20 @@ json_str = json.dumps({
     'producer': 'producer',
     'consumer': 'consumer',
     'processing_time': 'processing_time',
+    'config': str([])
     })
+
 
 def test_init():
     job = Job(1, 'uri', 'output_base', 'output_path')
 
+
 def test_from_json():
     job = Job.from_json(json_str)
     job.timestamp = None
+    print(str(job))
     assert str(job) == json_str
+
 
 def test_to_json():
     job = Job(0, 'uri', 'output_base', 'output_path')
@@ -33,5 +38,6 @@ def test_to_json():
         'timestamp': str(None),
         'producer': None,
         'consumer': None,
-        'processing_time': str(None)
+        'processing_time': str(None),
+        'config': str([])
         })
