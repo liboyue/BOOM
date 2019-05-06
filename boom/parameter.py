@@ -1,3 +1,5 @@
+import numpy as np
+
 class Parameter(object):
     """This class handles parameters."""
 
@@ -30,12 +32,14 @@ class Parameter(object):
     #  @return The generator for all possible values.
     def get_values(self):
         if self.type == 'float':
-            import numpy as np
+            count = 0
             for val in np.arange(
                     self.start,
                     self.end + self.step_size,
                     self.step_size):
-                yield val.astype(float)
+                count += 1
+                if count <= self.get_n_choices():
+                    yield val.astype(float)
 
         elif self.type == 'int':
             for val in range(
