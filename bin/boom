@@ -106,11 +106,6 @@ def start_container(client, cmd, name, volumes=None, network_mode='host'):
 
         return None
 
-def create_server(tf):
-    tf.plan(no_color=IsFlagged, refresh=False, capture_output=True)
-    print(tf.plan())
-    print(tf.apply(skip_plan=True))
-
 if __name__ == '__main__':
 
     gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')

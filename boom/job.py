@@ -11,9 +11,10 @@ class Job(object):
                  params=None, producer=None, consumer=None,
                  processing_time=None, config=None):
 
-        ## The id of this job
+        ## The configuration of this job
         if config is None:
             config = []
+        ## The id of this job
         self.id = job_id
         ## The uri to the data file.
         self.input_uri = input_uri
