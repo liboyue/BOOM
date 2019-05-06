@@ -6,18 +6,19 @@ from .module import Module
 
 
 class Logger(Module):
-    "The Logger module saves logs sent to it to a file."
+    """The Logger module saves logs sent to it to a file."""
 
-    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
+    def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf,
+                 module_conf, **kwargs):
         super(Logger, self).__init__(module_id, name, exp_name, rabbitmq_host,
                                      pipeline_conf, module_conf, **kwargs)
-        # The buffer for logs.
+        ## The buffer for logs.
         self.buf = []
 
-        # The id of the log file in MongoDB.
+        ## The id of the log file in MongoDB.
         self.file_id = None
 
-    # The function to handle incoming logs.
+    ## The function to handle incoming logs.
     def receive_job(self, ch, method, properties, body):
 
         # Parse request body.
@@ -47,7 +48,7 @@ class Logger(Module):
                     self.is_finished = True
                     self.cleanup()
 
-    # The function to save files.
+    ## The function to save files.
     #  @param exp_name The name of an experiment.
     def save(self):
 
@@ -61,8 +62,8 @@ class Logger(Module):
                 if self.file_id != None:
                     # Read the original log.
                     tmp = self.fs.get(self.file_id) \
-                            .read() \
-                            .decode()
+                        .read() \
+                        .decode()
 
                     # Delete the original log.
                     self.fs.delete(self.file_id)
@@ -72,15 +73,17 @@ class Logger(Module):
                     (tmp + '\n'.join(self.buf) + '\n').encode('utf-8'),
                     filename='log.txt',
                     metadata=self.exp_name
-                    )
+                )
 
             # Clean the buf.
             self.buf = []
 
-    # Clean up before exiting.
+    ## Clean up before exiting.
     def cleanup(self):
         self.connect()
-        log.debug(str(self.queue.method.message_count) + ' logs in the logger queue left')
+        log.debug(str(
+            self.queue.method.message_count) + ' logs in the logger queue left'
+                  )
 
         while self.queue.method.message_count > 0:
             self.channel.start_consuming()
@@ -89,10 +92,10 @@ class Logger(Module):
 
         if self.use_mongodb is True:
             with open(self.exp_name + '/log.txt', 'w') as f:
-                f.write(self.fs.get(self.file_id) \
-                            .read() \
-                            .decode()
-                       )
+                f.write(self.fs.get(self.file_id)
+                        .read()
+                        .decode()
+                        )
 
 
 if __name__ == '__main__':

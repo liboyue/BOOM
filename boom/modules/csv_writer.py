@@ -28,7 +28,7 @@ class CSVWriter(Module):
         self.content.append([job.output_path] + [data[k] for k in self.header])
         return data
 
-    # Save csv file, overriding the default saving function.
+    ## Save csv file, overriding the default saving function.
     #  @param job The job to be saved.
     #  @param data The data to be saved.
     #  @return the path to data.

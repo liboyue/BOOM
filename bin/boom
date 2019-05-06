@@ -20,7 +20,7 @@ from boom.utils import rabbitmq_status, mongodb_status, execute_cmd
 logging.getLogger("pika").propagate = False
 
 
-# The function to save code to files, copy extra modules and zip the code
+## The function to save code to files, copy extra modules and zip the code
 #  @param code The code to save
 #  @param dir_name The directory to save the code
 def write_and_zip_code(code, dir_name):
@@ -154,16 +154,6 @@ if __name__ == '__main__':
         rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
         # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
         conf['pipeline']['rabbitmq_host'] = '127.0.0.1' # Using host mode for the network
-
-    elif conf['pipeline']['mode'] == 'aws':
-        tf = Terraform(working_dir='../../boom/infra')
-        create_server(tf)
-        if rabbitmq_status(conf['pipeline']['rabbitmq_host']) == False:
-            rabbitmq = execute_cmd(['rabbitmq-server'])
-            log.info('Starting RabbitMQ server')
-        else:
-            log.info('RabbitMQ is running')
-
 
     # If we need to start MongoDB.
     mongodb = None
@@ -315,9 +305,6 @@ if __name__ == '__main__':
             rabbitmq.kill()
             mongodb.kill()
 
-    elif conf['pipeline']['mode'] == 'aws':
-        pass
-
     # Clean up
-    # if FLAGS.debug is False:
-    #     shutil.rmtree(FLAGS.tmp_dir)
+    if FLAGS.debug is False:
+        shutil.rmtree(FLAGS.tmp_dir)

@@ -31,7 +31,7 @@ class JSONWriter(Module):
         self.content.append(record)
         return data
 
-    # Save json file, overriding the default saving function.
+    ## Save json file, overriding the default saving function.
     #  @param job The job to be saved.
     #  @param data The data to be saved.
     #  @return the path to data.

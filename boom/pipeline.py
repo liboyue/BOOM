@@ -21,57 +21,57 @@ logging.getLogger("pika").propagate = False
 class Pipeline(object):
     """The pipeline class creates the pipeline, and manages execution."""
 
-    #  Initialization.
+    ##  Initialization.
     #  @param conf The Json serialized configuration file.
     #  @param exp_name The name of the experiment.
     def __init__(self, conf, exp_name):
 
-        # The internal job ID counter. It is the id of next job to use.
+        ## The internal job ID counter. It is the id of next job to use.
         self.cur_job_id = 0
 
-        # Content of the configuration file.
+        ## Content of the configuration file.
         self.conf = json.loads(conf)
 
-        # Initialize logger.
+        ## Initialize logger.
         set_logger(self.conf['pipeline']['rabbitmq_host'], exp_name)
 
         log.info('Loading configuration file')
         log.info(json.dumps(self.conf, indent=4))
 
-        # Name of the pipeline.
+        ## Name of the pipeline.
         self.name = self.conf['pipeline']['name']
 
-        # Name of the experiment.
+        ## Name of the experiment.
         self.exp_name = exp_name
 
-        # Clean up or not after running.
+        ## Clean up or not after running.
         self.clean_up = self.conf['pipeline']['clean_up'] \
             if 'clean_up' in self.conf['pipeline'] else False
 
-        # Use MongoDB or not.
+        ## Use MongoDB or not.
         self.use_mongodb = self.conf['pipeline']['use_mongodb'] \
             if 'use_mongodb' in self.conf['pipeline'] else False
 
         if self.use_mongodb:
-            # MongoDB's host.
+            ## MongoDB's host.
             self.mongodb_host = self.conf['pipeline']['mongodb_host']
 
-        # The configuration of each module.
+        ## The configuration of each module.
         self.modules = {mod_conf['name']: mod_conf for mod_conf in
                         self.conf['modules']}
         log.info('Module list: ' + str(self.modules))
 
-        # The total number of jobs.
+        ## The total number of jobs.
         self.n_jobs = self.calculate_total_jobs(self.conf)
         log.info('Total jobs: ' + str(self.n_jobs))
 
-        # Set of all running jobs.
+        ## Set of all running jobs.
         self.job_status = set()
 
-        # The RabbitMQ server name/IP/url.
+        ## The RabbitMQ server name/IP/url.
         self.rabbitmq_host = self.conf['pipeline']['rabbitmq_host']
 
-        # The connection the pipeline instance uses.
+        ## The connection the pipeline instance uses.
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=self.rabbitmq_host,
@@ -80,23 +80,23 @@ class Pipeline(object):
             )
         )
 
-        # The channel the pipeline instance uses.
+        ## The channel the pipeline instance uses.
         self.channel = self.connection.channel()
 
-        # The exchange the pipeline uses.
+        ## The exchange the pipeline uses.
         self.channel.exchange_declare(exchange='job', exchange_type='direct')
 
-        # The confirmation queue the pipeline instance uses.
+        ## The confirmation queue the pipeline instance uses.
         self.callback_queue = self.channel.queue_declare(
             queue='call_back').method.queue
 
-        # Set parameters.
+        ## Set parameters.
         self.channel.basic_consume(
             self.on_call_back,
             queue=self.callback_queue
         )
 
-        # The queue to each module.
+        ## The queue to each module.
         self.module_queues = {
             mod['name']: self.channel.queue_declare(
                 queue=mod['name']).method.queue for mod in self.conf['modules']
@@ -105,27 +105,27 @@ class Pipeline(object):
         self.module_queues['logger'] = self.channel.queue_declare(
             queue='logger').method.queue
 
-        # Bind queues
+        ## Bind queues
         for queue in self.module_queues:
             self.channel.queue_bind(exchange='job', queue=queue)
 
         self.channel.queue_bind(exchange='job', queue=self.callback_queue)
 
-        # The name of dir or database to save results.
+        ## The name of dir or database to save results.
         self.output_base = self.exp_name
         time.strftime("%Y-%m-%d_%Hh%Mm%Ss", time.localtime())
 
-        # Clean up data dir if needed
+        ## Clean up data dir if needed
         if os.path.isdir(self.output_base) is True:
             shutil.rmtree(self.output_base)
 
-        # Create data dir
+        ## Create data dir
         os.mkdir(self.output_base)
 
     def __str__(self, module=None, indent=0):
         return json.dumps(self.conf, indent=4)
 
-    # The function to calculate total number of jobs.
+    ## The function to calculate total number of jobs.
     #  @param conf the pipeline's configuration.
     #  @return the total number of jobs.
     def calculate_total_jobs(self, conf):
@@ -138,7 +138,7 @@ class Pipeline(object):
             total += level
         return int(total)
 
-    # The function to plot the pipeline.
+    ## The function to plot the pipeline.
     def plot(self):
         fig = pydotplus.Dot(graph_name=self.conf['pipeline']['name'],
                             rankdir="LR",
@@ -198,7 +198,7 @@ class Pipeline(object):
 
         fig.write_png(self.conf['pipeline']['name'] + '.png')
 
-    # The function to generate practical configurations for modules to run.
+    ## The function to generate practical configurations for modules to run.
     #  @return Job objects.
     def expand_params(self, mod_conf, i=0):
         if 'params' in mod_conf \
@@ -211,7 +211,7 @@ class Pipeline(object):
         else:
             yield {}
 
-    # The function to handle call back jobs.
+    ## The function to handle call back jobs.
     def on_call_back(self, ch, method, props, body):
         job = Job.from_json(body.decode('ascii'))
         self.job_status.remove(job.id)
@@ -272,7 +272,7 @@ class Pipeline(object):
                         os.system('rm ' + self.output_base + '/*.json')
                 quit()
 
-    # Send one job to one module.
+    ## Send one job to one module.
     #  @param module_name The name of target module.
     #  @param job The job object.
     def send_job(self, module_name, job):
@@ -287,7 +287,7 @@ class Pipeline(object):
         self.job_status.add(job.id)
         log.info('Sent job ' + str(job.id) + ' to module ' + module_name)
 
-    # Send one job to one module.
+    ## Send one job to one module.
     #  @param module_name The name of target module.
     #  @param job The job object.
     def send_command(self, module_name, module_id, command):
@@ -308,7 +308,7 @@ class Pipeline(object):
             'Sent command ' + command + ' to module ' + module_name + ', ' + str(
                 module_id))
 
-    # The function to move data to MongoDB.
+    ## The function to move data to MongoDB.
     def move_data_to_mongodb(self):
         gridfs.GridFS(
             pymongo.MongoClient(self.conf['pipeline']['mongodb_host']).boom) \
@@ -319,7 +319,7 @@ class Pipeline(object):
         )
         log.info('Saved data to MongoDB')
 
-    # The function to run the pipeline
+    ## The function to run the pipeline
     def run(self):
 
         # Move data to the exp folder.
@@ -349,7 +349,7 @@ class Pipeline(object):
         # Start running
         self.channel.start_consuming()
 
-    # The function to get the output directory of the pipeline.
+    ## The function to get the output directory of the pipeline.
     #  @return the path of the output directory
     def get_output_dir(self):
         return self.output_base

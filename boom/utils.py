@@ -8,7 +8,8 @@ import subprocess
 
 FLAGS = gflags.FLAGS
 
-# The function to test if RabbitMQ is running
+
+## The function to test if RabbitMQ is running
 #  @param rabbitmq_host The host of RabbitMQ server
 #  @return True if RabbitMQ is running, False otherwise
 def rabbitmq_status(rabbitmq_host):
@@ -19,7 +20,7 @@ def rabbitmq_status(rabbitmq_host):
         return False
 
 
-# The function to test if MongoDB server is running
+## The function to test if MongoDB server is running
 #  @param mongodb_host The host of MongoDB server
 #  @return True if MongoDB is running, False otherwise
 def mongodb_status(mongodb_host):
@@ -29,7 +30,7 @@ def mongodb_status(mongodb_host):
     except pymongo.errors.ServerSelectionTimeoutError:
         return False
 
-# The function to execute a command in a subprocess
+## The function to execute a command in a subprocess
 #  @param cmd The command to be executed
 #  @return None if in debug mode, the subprocess instance otherwise
 def execute_cmd(cmd):

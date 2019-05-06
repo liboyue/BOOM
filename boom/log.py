@@ -14,31 +14,31 @@ logging.getLogger("pika").propagate = False
 
 class RabbitHandler(logging.Handler):
 
-    # The terminator.
+    ## The terminator.
     terminator = '\n'
 
-    #  Initialization.
+    ##  Initialization.
     #  @param rabbitmq_host The RabbitMQ server's name/IP/url.
     def __init__(self, rabbitmq_host, exp_name):
         super(RabbitHandler, self).__init__()
         super(RabbitHandler, self).setLevel(FLAGS.verbosity)
 
-        # The interanl variable passing messages between functions.
+        ## The interanl variable passing messages between functions.
         self.msg = ''
 
-        # The RabbitMQ server's name/IP/url.
+        ## The RabbitMQ server's name/IP/url.
         self.rabbitmq_host = rabbitmq_host
 
-        # The experiment's name.
+        ## The experiment's name.
         self.exp_name = exp_name
 
-        # Connect to RabbitMQ server.
+        ## Connect to RabbitMQ server.
         self.connect()
 
-    # The function to connect to RabbitMQ server.
+    ## The function to connect to RabbitMQ server.
     def connect(self):
 
-        # The connection the pipeline instance uses.
+        ## The connection the pipeline instance uses.
         self.connection = pika.BlockingConnection(
                 pika.ConnectionParameters(
                     host=self.rabbitmq_host,
@@ -47,19 +47,19 @@ class RabbitHandler(logging.Handler):
                     )
                 )
 
-        # The channel the logger instance uses.
+        ## The channel the logger instance uses.
         self.channel = self.connection.channel()
 
-        # The exchange the logger uses.
+        ## The exchange the logger uses.
         self.channel.exchange_declare(exchange='job', exchange_type='direct')
 
-        # The queue to logger module.
+        ## The queue to logger module.
         self.queue = self.channel.queue_declare(queue='logger').method.queue
 
-        # Bind queue.
+        ## Bind queue.
         self.channel.queue_bind(exchange='job', queue=self.queue)
 
-    # Flush function.
+    ## Flush function.
     def flush(self):
         self.acquire()
 
@@ -78,7 +78,7 @@ class RabbitHandler(logging.Handler):
             self.msg = ''
             self.release()
 
-    # Emit function.
+    ## Emit function.
     def emit(self, record):
 
         try:
@@ -89,7 +89,7 @@ class RabbitHandler(logging.Handler):
             self.handleError(record)
 
 
-# The function that updates the logger.
+## The function that updates the logger.
 #  @param rabbitmq_host The RabbitMQ host.
 #  @param exp_name The experiment's name.
 def set_logger(rabbitmq_host=None, exp_name=None):

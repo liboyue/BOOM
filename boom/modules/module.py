@@ -19,57 +19,57 @@ class Module(object):
     this class.
     """
 
-    # Initialization.
+    ## Initialization.
     def __init__(self, module_id, name, exp_name, rabbitmq_host, pipeline_conf, module_conf, **kwargs):
 
-        # The module's id.
+        ## The module's id.
         self.id = module_id
 
-        # The module's name.
+        ## The module's name.
         self.name = name
 
-        # The experiment's name.
+        ## The experiment's name.
         self.exp_name = exp_name
 
-        # Initialize logger.
+        ## Initialize logger.
         set_logger(rabbitmq_host, self.exp_name)
 
-        # The module's input file path. None if not exists.
+        ## The module's input file path. None if not exists.
         self.use_mongodb = pipeline_conf['use_mongodb'] if 'use_mongodb' in pipeline_conf else False
         if self.use_mongodb:
-            # MongoDB's host.
+            ## MongoDB's host.
             self.mongodb_host = pipeline_conf['mongodb_host']
-            # The gridfs object used by the pipeline.
+            ## The gridfs object used by the pipeline.
             self.fs = gridfs.GridFS(
                 pymongo.MongoClient(self.mongodb_host).boom
                 )
 
-        # The module's input file path. None if not exists.
+        ## The module's input file path. None if not exists.
         self.input_file = module_conf['input_file'] \
             if 'input_file' in module_conf else None
 
-        # The module's output file path. None if not exists.
+        ## The module's output file path. None if not exists.
         self.output_file = module_conf['output_file'] \
             if 'output_file' in module_conf else None
 
-        # The module's input module's name. None if not exists.
+        ## The module's input module's name. None if not exists.
         self.input_module = module_conf['input_module'] \
             if 'input_module' in module_conf else None
 
-        # The module's output module's name. None if not exists.
+        ## The module's output module's name. None if not exists.
         self.output_module = module_conf['output_module'] \
             if 'output_module' in module_conf else None
 
-        # The RabbitMQ server name/IP/url.
+        ## The RabbitMQ server name/IP/url.
         self.rabbitmq_host = rabbitmq_host
 
-        # The exchange the pipeline uses.
+        ## The exchange the pipeline uses.
         self.exchange = ''
 
-        # Work around for the time out problem.
+        ## Work around for the time out problem.
         self.is_finished = False
 
-        # Connect
+        ## Connect
         self.connect()
 
     def __str__(self):
@@ -78,10 +78,10 @@ class Module(object):
             'id': self.id,
             })
 
-    # The function to (re)connect to RabbitMQ server.
+    ## The function to (re)connect to RabbitMQ server.
     def connect(self):
 
-        # The connection the module instance uses.
+        ## The connection the module instance uses.
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=self.rabbitmq_host,
@@ -89,21 +89,21 @@ class Module(object):
                 )
             )
 
-        # The channel the module instance uses.
+        ## The channel the module instance uses.
         self.channel = self.connection.channel()
 
-        # The queue the module instance uses.
+        ## The queue the module instance uses.
         self.queue = self.channel.queue_declare(queue=self.name)
         self.channel.basic_qos(prefetch_count=1)
 
-        # Connect to RabbitMQ
+        ## Connect to RabbitMQ
         self.channel.basic_consume(consumer_callback=self.receive_job,
                                    queue=self.name)
 
-    # The function to handle incoming jobs.
+    ## The function to handle incoming jobs.
     def receive_job(self, ch, method, properties, body):
 
-        # Parse request body.
+        ## Parse request body.
         data = json.loads(body.decode('ascii'))
         if data['type'] == 'job':
             ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -111,13 +111,13 @@ class Module(object):
             job = Job.from_json(data['body'])
             log.info(self.name + ' received job: ' + str(job.id))
 
-            # Load data.
+            ## Load data.
             data = self.load_job_data(job)
 
-            # Process data.
+            ## Process data.
             data = self.process(job, data)
 
-            # Update job info.
+            ## Update job info.
             job.producer = self.name
             job.consumer = self.output_module
             job.output_path += self.name + '_' + json.dumps(job.params) + '_'
@@ -136,15 +136,15 @@ class Module(object):
                     }
                 ])
 
-            # Save data and update the data uri.
+            ## Save data and update the data uri.
             job.input_uri = self.save_job_data(job, data)
 
-            # Update timestamp and processing time.
+            ## Update timestamp and processing time.
             job.update_timestamp()
 
-            # Connect
+            ## Connect
             self.connect()
-            # Send back resulting job.
+            ## Send back resulting job.
             self.channel.basic_publish(
                 exchange='job',
                 routing_key=properties.reply_to,
@@ -165,15 +165,15 @@ class Module(object):
                     self.is_finished = True
                     self.cleanup()
 
-    # Get the name of the module.
+    ## Get the name of the module.
     def get_name(self):
         return self.name
 
-    # Clean up before exiting.
+    ## Clean up before exiting.
     def cleanup(self):
         pass
 
-    # Load Job from path or MongoDB.
+    ## Load Job from path or MongoDB.
     #  @param job The job object to load.
     #  @return The data loaded.
     def load_job_data(self, job):
@@ -189,7 +189,7 @@ class Module(object):
                     .decode("utf-8")
             return self.parse_data(data)
 
-    # Save Job and data to file or MongoDB.
+    ## Save Job and data to file or MongoDB.
     #  @param job The job to be saved.
     #  @param data The data to be saved.
     #  @return the path to data.
@@ -208,19 +208,19 @@ class Module(object):
                 )
         return job.output_path
 
-    # Parse the loaded data
+    ## Parse the loaded data
     #  @param data The data to be parsed.
     #  @return the parsed data.
     def parse_data(self, data):
         return json.loads(data)
 
-    # Dump the data to string
+    ## Dump the data to string
     #  @param data The data to be dumped.
     #  @return the dumped data.
     def dump_data(self, data):
         return json.dumps(data)
 
-    # The function to run the algorithm and process data objects.
+    ## The function to run the algorithm and process data objects.
     #  This function needs to be implemented in each class and should run the
     #  core algorithm for the module, save intermediate results and return the
     #  resulting data object.
@@ -230,7 +230,7 @@ class Module(object):
     def process(self, job, data):
         pass
 
-    # The function to start the service.
+    ## The function to start the service.
     def run(self):
         log.info('Module ' + self.name + ' started, awaiting for requests.')
 
