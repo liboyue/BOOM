@@ -8,6 +8,7 @@ import subprocess
 
 FLAGS = gflags.FLAGS
 
+
 ## The function to test if RabbitMQ is running
 #  @param rabbitmq_host The host of RabbitMQ server
 #  @return True if RabbitMQ is running, False otherwise

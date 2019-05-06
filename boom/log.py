@@ -11,6 +11,7 @@ FLAGS = flags.FLAGS
 # Disable Pika's debugging messages.
 logging.getLogger("pika").propagate = False
 
+
 class RabbitHandler(logging.Handler):
 
     ## The terminator.
@@ -31,7 +32,7 @@ class RabbitHandler(logging.Handler):
         ## The experiment's name.
         self.exp_name = exp_name
 
-        # Connect to RabbitMQ server.
+        ## Connect to RabbitMQ server.
         self.connect()
 
     ## The function to connect to RabbitMQ server.
@@ -55,7 +56,7 @@ class RabbitHandler(logging.Handler):
         ## The queue to logger module.
         self.queue = self.channel.queue_declare(queue='logger').method.queue
 
-        # Bind queue.
+        ## Bind queue.
         self.channel.queue_bind(exchange='job', queue=self.queue)
 
     ## Flush function.
@@ -86,6 +87,7 @@ class RabbitHandler(logging.Handler):
 
         except Exception:
             self.handleError(record)
+
 
 ## The function that updates the logger.
 #  @param rabbitmq_host The RabbitMQ host.

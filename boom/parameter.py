@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Parameter(object):
     """This class handles parameters."""
 
@@ -22,13 +23,11 @@ class Parameter(object):
         s = 'name: ' + str(self.name) + ', type: ' + self.type
         if self.type == 'float' or self.type == 'int':
             s += ', start: ' + str(self.start) \
-            + ', end: ' + str(self.end) \
-            + ', step size: ' + str(self.step_size)
+                 + ', end: ' + str(self.end) \
+                 + ', step size: ' + str(self.step_size)
         else:
-            s += ', values: ' + str(self.values) \
-
+            s += ', values: ' + str(self.values)
         return s
-
 
     ## The generator for all possible values.
     #  @return The generator for all possible values.

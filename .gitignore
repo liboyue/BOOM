@@ -7,3 +7,7 @@ data
 *.pyc
 MANIFEST
 *.png
+.idea/*
+env/*
+dist/*
+*.DS_Store
