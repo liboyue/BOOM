@@ -15,7 +15,6 @@ import pika
 import docker
 import boom
 from boom.utils import rabbitmq_status, mongodb_status, execute_cmd
-from python_terraform import *
 
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
