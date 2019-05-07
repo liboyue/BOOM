@@ -46,7 +46,7 @@ The final module is a standard CSVWriter module that will write the final output
 ```
 
 pipeline:
-    mode: docker # Running mode, local or docker
+    mode: docker # Running mode, local or docker or aws
     name: toy_pipeline # Name of the pipeline
     rabbitmq_host: 127.0.0.1 # RabbitMQ's host's uri
     clean_up: false # Whether the pipeline cleans up after finished running, true or false
@@ -97,6 +97,68 @@ modules:
     -   name: module_4
         type: CSVWriter
         output_file: results.csv 
+        instances: 1
+```
+
+Sample configuration for toy module to run it in aws mode and generate the
+results using JSON Writer:
+
+```
+pipeline: # Pipeline section, defines pipeline's properties
+    mode: aws # Running mode, local or docker or aws, default local
+    name: toy_pipeline # Name of the pipeline
+    rabbitmq_host: 127.0.0.1 # RabbitMQ's host uri
+    clean_up: false # Whether the pipeline cleans up after finished running, true or false
+    use_mongodb: false # Whether to use MongoDB, true or false, default false
+    mongodb_host: 127.0.0.1 # MongoDB's host
+    aws_config: # These only need to be specified if the mode is 'aws'
+        AWS_ACCESS_KEY: <YOUR_AWS_ACCESS_KEY> # Mandatory. To create and destroy resources
+        AWS_SECRET_KEY: <YOUR_AWS_SECRET_KEY> # Mandatory. To create and destroy resources
+        BUCKET_NAME: <UNIQUE_S3_BUCKET_NAME> # Mandatory. The bucket name you want to create on S3. Please chose a unique bucket name.
+        # If the bucket already exists in S3. The boom pipeline will fail.
+        AWS_REGION: us-east-1 # Optional. Default is us-east-1
+        KEY_NAME: boom # Optional. You need to specify it if you want to SSH into your EC2 during the boom pipeline is running
+        INSTANCE_TYPE: t2.micro # Optional. Default is t2.micro. Should be changed based on your workload
+
+modules:
+    -   name: module_1 # Name of the module
+        type: Sample # Type of the module
+        input_file: data.json # Input file's uri
+        output_module: module_2 # The following module's name
+        instances: 1 # Number of instances of this module
+        params:
+            -   name: p1
+                type: collection # Type of the param, int, float or collection
+                values: # Possible vaules for collection param
+                    - val1
+                    - val2
+                    - val3
+
+            -   name: p2
+                type: int
+                start: 0
+                end: 20
+                step_size: 20
+
+    -   name: module_2
+        type: Sample
+        output_module: module_3
+        instances: 1
+        params:
+            -   name: p
+                type: float
+                start: 0.0
+                end: 80.0
+                step_size: 40.0
+        
+    -   name: module_3
+        type: Sample
+        output_module: module_4
+        instances: 1
+
+    -   name: module_4
+        type: JSONWriter
+        output_file: results.txt
         instances: 1
 ```
 

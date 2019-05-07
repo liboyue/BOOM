@@ -63,8 +63,9 @@ Following is the `pipeline` section of the toy example's configuration file:
         use_mongodb: false
         mongodb_host: 127.0.0.1
 
-Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
+Under the `pipeline` key, there are 6 key-value pairs that need to be declared:
 
+    mode
     name
     rabbitmq_host
     clean_up
@@ -72,6 +73,16 @@ Under the `pipeline` key, there are 5 key-value pairs that need to be declared:
     mongodb_host
 
 `name` allows the user to declare a name for the pipeline. `rabbitmq_host` and `mongodb_host` are simply the host addresses for RabbitMQ and MongoDB, respectively. `clean_up` is a boolean value that will delete intermediate output files if declared `true`. `use_mongodb` is a boolean value that will write data to MongoDB instead of files if declared `true`.
+
+`mode` has three possible values:
+1. `local`
+    * Executes the pipeline as independent python modules running on your machine
+2. `docker`
+    * Executes the pipeline as individual docker modules running on your machine
+3. `aws`
+    * Executes the pipeline on an AWS EC2 instance which executes the python 
+    modules and uploads the results on an S3 bucket and destroys the EC2 instance
+
 
 Following is the `modules` section of the toy example's configuration file:
 

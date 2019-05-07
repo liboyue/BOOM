@@ -1,4 +1,4 @@
-'''The utilities functions shared within BOOM'''
+"""The utilities functions shared within BOOM"""
 
 import pika
 import glog as log
@@ -34,7 +34,7 @@ def mongodb_status(mongodb_host):
 #  @param cmd The command to be executed
 #  @return None if in debug mode, the subprocess instance otherwise
 def execute_cmd(cmd):
-    if FLAGS.debug == True:
+    if FLAGS.debug:
         log.info('Execute ' + ' '.join(cmd))
         return None
     else:

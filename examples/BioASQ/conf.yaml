@@ -9,7 +9,7 @@ pipeline:
 modules:
     -   name: ranker
         type: CoreMMR
-        input_file: train_sample.json
+        input_file: train_50.json
         # input_file: BioASQ-trainingDataset6b.json
         output_module: orderer
         instances: 1
@@ -45,10 +45,10 @@ modules:
 
     -   name: rouge
         type: Rouge
-        output_module: csv
+        output_module: json
         instances: 1
 
-    -   name: csv
-        type: CSVWriter
-        output_file: results.csv
+    -   name: json
+        type: JSONWriter
+        output_file: results.txt
         instances: 1

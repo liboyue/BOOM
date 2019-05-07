@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 # coding=utf-8
-import logging
-import os
-import sys
 import shutil
-import json
 import time
 
+import boto3
 import yaml
 import gflags
 import glog as log
-import pymongo
-import pika
 import docker
 import boom
 from boom.utils import rabbitmq_status, mongodb_status, execute_cmd
+from python_terraform import *
 
 # Disable Pika's debugging messages
 logging.getLogger("pika").propagate = False
@@ -106,10 +102,109 @@ def start_container(client, cmd, name, volumes=None, network_mode='host'):
 
         return None
 
+
+## Function to Upload the Zipped modules and input data file to S3 Bucket
+#  Create an EC2 instance, download files from S3
+#  Run the modules on the EC2 instance
+#  Upload the results back to S3
+#  @param tf The terraform object to create the resources
+#  @param tf_variables The terraform variables for resource creation
+#  @param infra_dir The directory path for the infra folder containing the
+# terraform code to create the resources
+def upload_object(tf, tf_variables, infra_dir):
+    log.info("Uploading Zipped modules to S3 Bucket")
+    # The script to generate terraform configuration to upload zipped
+    # modules to S3
+    sh_file = infra_dir + '/upload_files/generate-upload-files-tf.sh'
+
+    # Execute the script
+    subprocess.call([sh_file, curr_path, infra_dir, tf_variables['data_filename']])
+    log.info("Zipped modules upload complete")
+    log.info("Creating EC2 instance...")
+
+    # Creates the EC2 instance and required policies
+    return_code, stdout, stderr = tf.apply(
+        skip_plan=True,
+        var=tf_variables
+    )
+    if return_code == 1:
+        log.info("upload_object stdout: " + stdout)
+        log.info("upload_object stderr: " + stderr)
+        exit()
+    log.info("EC2 instance created")
+
+
+## Wait for the results to be generated on the server
+#  This method keeps on polling the bucket to check for the result file
+#  specified by the user in the conf.yaml
+#  @param exp_name The name of this experiment
+#  @param output_file The name of results file
+#  @param exp_name The name of S3 bucket
+#  @param tf_variables The terraform variables to access S3 bucket objects
+def wait_for_results(exp_name, output_file, bucket_name, tf_variables):
+    log.info("Waiting for results to be generated and uploaded to S3 bucket")
+    aws_access_key_id = tf_variables['AWS_ACCESS_KEY']
+    aws_secret_access_key = tf_variables['AWS_SECRET_KEY']
+
+    # Create connection with S3 bucket
+    s3 = boto3.resource('s3', aws_access_key_id=aws_access_key_id,
+                        aws_secret_access_key=aws_secret_access_key)
+    bucket = s3.Bucket(bucket_name)
+
+    # The complete result file path to look for
+    result_file = exp_name + '/' + output_file
+    count = 0
+    # The time after which we need to check for the results in the S3 bucket
+    sleep_timer = 10
+
+    while True:
+        # Get the list of objects in S3 bucket
+        for obj in bucket.objects.all():
+            key = obj.key
+            # Check if it is the result file
+            if key == result_file:
+                log.info("Results uploaded")
+                return True
+        # Go to sleep for specified time
+        time.sleep(sleep_timer)
+        count += sleep_timer
+        log.info("Time elapsed " + str(count) + "s")
+
+
+## Create an S3 bucket to store the results and intermediate files
+#  @param tf The terraform object to destroy the resources
+def destroy_resources(tf):
+    log.info("Destroying all the resources...")
+    tf.destroy()
+    log.info("Resources Destroyed. Results uploaded to the bucket")
+
+
+## Create an S3 bucket to store the results and intermediate files
+#  @param infra_dir The directory path for the infra folder containing the
+#  terraform code to create an S3 bucket
+#  @param tf_variables The terraform variables for bucket creation
+def create_bucket(infra_dir, tf_variables):
+    log.info("Creating the S3 Bucket...")
+    tf = Terraform(working_dir=infra_dir + '/s3bucket', variables=tf_variables)
+    return_code, stdout, stderr = tf.init(reconfigure=True)
+    if return_code == 1:
+        log.info("1 create_bucket stdout: " + stdout)
+        log.info("1 create_bucket stderr: " + stderr)
+        exit()
+    return_code, stdout, stderr = tf.apply(
+        skip_plan=True
+    )
+    if return_code == 1:
+        log.info("2 create_bucket stdout: " + stdout)
+        log.info("2 create_bucket stderr: " + stderr)
+        exit()
+    log.info("S3 Bucket created")
+
+
 if __name__ == '__main__':
 
     gflags.DEFINE_string('conf', 'conf.yaml', 'path to the configuration file')
-    gflags.DEFINE_string('tmp_dir', 'tmp', 'path to the temporare directory')
+    gflags.DEFINE_string('tmp_dir', 'tmp', 'path to the temporary directory')
     gflags.DEFINE_boolean('plot', False, 'plots the pipeline')
     gflags.DEFINE_boolean('profile', False, 'profile each module')
     gflags.DEFINE_boolean('help', False, 'print the help message')
@@ -149,6 +244,10 @@ if __name__ == '__main__':
         rabbitmq = start_container(client, 'rabbitmq-server', 'rabbitmq')
         # conf['pipeline']['rabbitmq_host'] = rabbitmq.attrs['NetworkSettings']['IPAddress']
         conf['pipeline']['rabbitmq_host'] = '127.0.0.1' # Using host mode for the network
+
+    elif conf['pipeline']['mode'] == 'aws':
+        # We do not need RabbitMQ or Mongo for AWS Mode
+        pass
 
     # If we need to start MongoDB.
     mongodb = None
@@ -229,9 +328,7 @@ if __name__ == '__main__':
     Logger_conf = dict(module)
     Logger_conf['name'] = 'logger'
     Logger_conf['type'] = 'Logger'
-    #code = generate_module_code(conf, Logger_conf, cur_id)
     code = generate_module_code(conf, Logger_conf, cur_id, exp_name)
-    #dir_name = FLAGS.tmp_dir + '/logger'
     dir_name = FLAGS.tmp_dir + '/' + str(cur_id)
     dir_list.append(dir_name)
     write_and_zip_code(code, dir_name)
@@ -251,7 +348,6 @@ if __name__ == '__main__':
         if FLAGS.debug is False:
             for process in process_list:
                 process.wait()
-
 
         # Kill RabbitMQ process if needed.
         if rabbitmq != None:
@@ -300,6 +396,55 @@ if __name__ == '__main__':
             rabbitmq.kill()
             mongodb.kill()
 
+    elif conf['pipeline']['mode'] == 'aws':
+        curr_path = os.path.abspath("")
+
+        # The directory containing the terraform configuration files for
+        # creating new resources
+        infra_dir = os.path.abspath("infra")
+        if not os.path.isdir(infra_dir):
+            log.error(
+                "infra directory not found. Please make sure the infra directory is present in boom execution directory.")
+
+        tf_variables = {
+            'AWS_ACCESS_KEY': conf['pipeline']['aws_config']['AWS_ACCESS_KEY'],
+            'AWS_SECRET_KEY': conf['pipeline']['aws_config']['AWS_SECRET_KEY'],
+            'BUCKET_NAME': conf['pipeline']['aws_config']['BUCKET_NAME'],
+            'data_filename': conf['modules'][0]['input_file'],
+            'FILE_COUNT': cur_id+1,
+            'curr_path': curr_path
+        }
+
+        if conf['pipeline']['aws_config']['AWS_REGION']:
+            tf_variables['AWS_REGION'] = conf['pipeline']['aws_config']['AWS_REGION']
+
+        if conf['pipeline']['aws_config']['KEY_NAME']:
+            tf_variables['KEY_NAME'] = conf['pipeline']['aws_config']['KEY_NAME']
+
+        if conf['pipeline']['aws_config']['INSTANCE_TYPE']:
+            tf_variables['INSTANCE_TYPE'] = conf['pipeline']['aws_config']['INSTANCE_TYPE']
+
+        # Create an S3 bucket to store the results and intermediate files
+        create_bucket(infra_dir, tf_variables)
+
+        tf = Terraform(working_dir=infra_dir, variables=tf_variables)
+        tf.init(reconfigure=True)
+
+        # Upload the Zipped modules and input data file to S3 Bucket
+        # Create an EC2 instance, download files from S3
+        # Run the modules on the EC2 instance
+        # Upload the results back to S3
+        upload_object(tf, tf_variables, infra_dir)
+
+        # Wait for the results to be updated to S3
+        bucket_name = conf['pipeline']['aws_config']['BUCKET_NAME']
+        output_file = conf['modules'][-1]['output_file']
+        wait_for_results(exp_name, output_file, bucket_name, tf_variables)
+
+        # Destroy all the resources after the results have been uploaded to S3
+        destroy_resources(tf)
+
     # Clean up
     if FLAGS.debug is False:
         shutil.rmtree(FLAGS.tmp_dir)
+

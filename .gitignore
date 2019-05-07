@@ -11,3 +11,5 @@ MANIFEST
 env/*
 dist/*
 *.DS_Store
+.terraform
+**.tfstate*
