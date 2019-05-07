@@ -42,7 +42,7 @@ class JSONWriter(Module):
         if not os.path.exists(job.output_base):
             os.mkdir(job.output_base)
 
-        with open(path, 'ab') as jsonfile:
+        with open(path, 'w') as jsonfile:
             for row in self.content:
                 jsonfile.write(json.dumps(row) + '\n')
         return path
